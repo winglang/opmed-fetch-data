@@ -18,10 +18,4 @@ def lambda_handler(event, context):
     "end": "2022-09-30"
   }
   r = requests.post(url, json=data, headers=headers, verify=False)
-  print(r.content)
-  r.json()
-    
-  return {
-    'statusCode': 200,
-    'body': json.dumps('Hello from Lambda!')
-  }
+  return r.content
