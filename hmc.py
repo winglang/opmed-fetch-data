@@ -25,4 +25,11 @@ def lambda_handler(event, context):
   }
   
   r = requests.post(url, json=data, headers=headers, verify=False)
-  return r.content
+  
+  return {
+    "statusCode": 200,
+    "headers": {
+       "Content-Type": "application/json"
+    },
+    "body": r.content
+  }
