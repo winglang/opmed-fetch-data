@@ -1,0 +1,26 @@
+name: Upload Lambda
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - run: pip install -r requirements.txt
+    - name: zip lambda
+      run: zip lambda.zip *
+    - name: Deploy AWS Lambda function
+      uses: yvesgurcan/deploy-lambda-function@v0.0.5
+      with:
+        package: lambda.zip
+        function-name: fetch-data-hmc
+        AWS_REGION: eu-west-1
+        AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
