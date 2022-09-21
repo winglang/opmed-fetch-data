@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 
 def lambda_handler(event, context):
   url = 'https://172.31.3.203:4431/api/external/fullcalendar_events_ajax'
