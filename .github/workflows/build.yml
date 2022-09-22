@@ -20,7 +20,7 @@ jobs:
       uses: yvesgurcan/deploy-lambda-function@v0.0.5
       with:
         package: lambda.zip
-        function-name: fetch-data-hmc
+        function-name: fetch-data
         AWS_REGION: eu-west-1
         AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
