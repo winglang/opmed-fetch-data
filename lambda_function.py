@@ -6,7 +6,7 @@ import datetime
 def lambda_handler(event, context):
   url = 'https://172.31.3.203:4431/api/external/fullcalendar_events_ajax'
   headers = {
-    "Host": "md-booking.hmc.co.il",
+    "Host": os.environ['HOST'],
     "accept-charset": "utf-8",
     "authorization": os.environ['AUTHORIZATION'],
     "cache-control": "no-cache",
