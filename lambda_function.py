@@ -10,8 +10,7 @@ def lambda_handler(event, context):
     "accept-charset": "utf-8",
     "authorization": os.environ['AUTHORIZATION'],
     "cache-control": "no-cache",
-    "content-type": "application/json",
-    "postman-token": "2df6e60a-b265-e628-e1be-7ae751feb52c"
+    "content-type": "application/json"
   }
   
   today = datetime.date.today()
