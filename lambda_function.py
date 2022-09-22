@@ -4,7 +4,7 @@ import os
 import datetime
 
 def lambda_handler(event, context):
-  url = 'https://172.31.3.203:4431/api/external/fullcalendar_events_ajax'
+  url = '{}/api/external/fullcalendar_events_ajax'.format(os.environ['HAPROXY_PATH'])
   headers = {
     "Host": os.environ['HOST'],
     "accept-charset": "utf-8",
