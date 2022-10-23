@@ -15,7 +15,7 @@ def lambda_handler(event, context):
   
   today = datetime.date.today()
   from_date = today - datetime.timedelta(days=5)
-  to_date = today + datetime.timedelta(days=40)
+  to_date = today + datetime.timedelta(days=35)
   
   data = {
     "event_type": "surgery",
