@@ -19,7 +19,7 @@ def lambda_handler(event, context):
   from_date = today - datetime.timedelta(days=3)
   to_date = today + datetime.timedelta(days=27)
   
-  if "queryStringParameters" in event:
+  if "queryStringParameters" in event and event["queryStringParameters"] != None:
     if "from" in event["queryStringParameters"]:
       from_date = datetime.datetime.strptime(event["queryStringParameters"]["from"], "%Y-%m-%d")
     if "to" in event["queryStringParameters"]:
