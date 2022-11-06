@@ -3,6 +3,7 @@ import requests
 import os
 import datetime
 import time
+import boto3
 
 MAX_DELTA_DAYS = 60
 
