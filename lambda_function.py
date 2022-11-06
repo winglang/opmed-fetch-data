@@ -76,7 +76,7 @@ def lambda_handler(event, context):
       s3 = boto3.resource('s3')
       s3object = s3.Object(os.environ['BUCKET_NAME'], 'fetch.json')
       s3object.put(
-        Body=(bytes(r.content.encode('UTF-8')))
+        Body=r.content
       )
     except Exception as e:
       print("Error: {}".format(e))
