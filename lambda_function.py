@@ -36,12 +36,16 @@ def lambda_handler(event, context):
   today = datetime.date.today()
   from_date = today - datetime.timedelta(days=3)
   to_date = today + datetime.timedelta(days=27)
+  save_to_blob = False
   
   if "queryStringParameters" in event and event["queryStringParameters"] != None:
     if "from" in event["queryStringParameters"]:
       from_date = datetime.datetime.strptime(event["queryStringParameters"]["from"], "%Y-%m-%d")
     if "to" in event["queryStringParameters"]:
       to_date = datetime.datetime.strptime(event["queryStringParameters"]["to"], "%Y-%m-%d")
+      
+    if "save" in event["queryStringParameters"]:
+      save_to_blob = True
       
   delta_days = to_date - from_date
   if delta_days.days > MAX_DELTA_DAYS:
@@ -68,6 +72,18 @@ def lambda_handler(event, context):
       },
       "body": {"error": "fail to fetch data"}
     }        
+
+  if save_to_blob:
+    s3 = boto3.client('s3')
+
+    try:
+      s3 = boto3.resource('s3')
+      s3object = s3.Object(os.environ['BUCKET_NAME'], 'your_file.json')
+      s3object.put(
+        Body=(bytes(r.content.encode('UTF-8')))
+      )
+    except Exception as e:
+      print("Error: {}".format(e))
       
   return {
     "statusCode": 200,
