@@ -73,7 +73,7 @@ def lambda_handler(event, context):
 
     try:
       s3 = boto3.resource('s3')
-      s3object = s3.Object(os.environ['BUCKET_NAME'], 'your_file.json')
+      s3object = s3.Object(os.environ['BUCKET_NAME'], 'fetch.json')
       s3object.put(
         Body=(bytes(r.content.encode('UTF-8')))
       )
