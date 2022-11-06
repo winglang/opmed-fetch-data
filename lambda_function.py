@@ -34,8 +34,8 @@ def lambda_handler(event, context):
   }
   
   today = datetime.date.today()
-  from_date = today - datetime.timedelta(days=3)
-  to_date = today + datetime.timedelta(days=27)
+  from_date = default_from_date = today - datetime.timedelta(days=3)
+  to_date = default_to_date = today + datetime.timedelta(days=27)
   save_to_blob = False
   
   if "queryStringParameters" in event and event["queryStringParameters"] != None:
@@ -49,13 +49,8 @@ def lambda_handler(event, context):
       
   delta_days = to_date - from_date
   if delta_days.days > MAX_DELTA_DAYS:
-    return {
-      "statusCode": 200,
-      "headers": {
-         "Content-Type": "application/json"
-      },
-      "body": {"error": "delta is more than 60 days"}
-    }    
+    from_date = default_from_date
+    to_date = default_to_date
   
   data = {
     "event_type": "surgery",
