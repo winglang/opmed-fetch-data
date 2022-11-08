@@ -70,8 +70,6 @@ def lambda_handler(event, context):
     }        
 
   if save_to_blob:
-    s3 = boto3.client('s3')
-
     try:
       s3 = boto3.resource('s3')
       s3object = s3.Object(os.environ['BUCKET_NAME'], 'fetch.json')
