@@ -45,7 +45,7 @@ def lambda_handler(event, context):
     if "to" in event["queryStringParameters"]:
       to_date = datetime.datetime.strptime(event["queryStringParameters"]["to"], "%Y-%m-%d")
       
-    if "save" in event["queryStringParameters"]:
+    if "save" in event["queryStringParameters"] or "save" in event:
       save_to_blob = True
       
   delta_days = to_date - from_date
