@@ -36,7 +36,7 @@ def lambda_handler(event, context):
   
   today = datetime.date.today()
   from_date = default_from_date = today - datetime.timedelta(days=3)
-  to_date = default_to_date = today + datetime.timedelta(days=27)
+  to_date = default_to_date = today + datetime.timedelta(days=21)
   save_to_blob = False
   
   if "queryStringParameters" in event and event["queryStringParameters"] != None:
