@@ -72,7 +72,7 @@ def lambda_handler(event, context):
   if save_to_blob:
     try:
       s3 = boto3.resource('s3')
-      s3object = s3.Object(os.environ['BUCKET_NAME'], 'fetch.json')
+      s3object = s3.Object(os.environ['BUCKET_NAME'], 'fetch.{}.json'.format(datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
       s3object.put(
         Body=r.content
       )
