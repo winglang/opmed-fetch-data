@@ -39,7 +39,8 @@ def lambda_handler(event, context):
   from_date = default_from_date = today - datetime.timedelta(days=3)
   to_date = default_to_date = today + datetime.timedelta(days=21)
   save_to_blob = False
-  
+
+  print("event: {}".format(event))  
   if "save" in event:
     save_to_blob = True
 
