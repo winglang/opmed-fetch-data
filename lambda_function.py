@@ -77,6 +77,7 @@ def lambda_handler(event, context):
       s3object.put(
         Body=r.content
       )
+      print("Success: Saved to S3")
     except Exception as e:
       print("Error: {}".format(e))
       
