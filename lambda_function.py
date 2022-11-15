@@ -41,7 +41,9 @@ def lambda_handler(event, context):
   save_to_blob = False
 
   print("event: {}".format(event))  
-  if "body" in event and "save" in event["body"] or "save" in event:
+  if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]: 
+    save_to_blob = True
+  if event is not None and "save" in event:
     save_to_blob = True
 
   if "queryStringParameters" in event and event["queryStringParameters"] != None:
