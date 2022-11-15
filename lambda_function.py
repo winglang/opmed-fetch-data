@@ -8,19 +8,20 @@ import boto3
 MAX_DELTA_DAYS = 60
 
 def get_data(url, data, headers):
-  for i in range(1, 5):
+  for i in range(0, 5):
     r = get_data_base(url, data, headers)
     if r != None:
       return r
-    time.sleep(15)
+    time.sleep(20)
    
   return None
 
 def get_data_base(url, data, headers):
   try:
     r = requests.post(url, json=data, headers=headers, verify=False)
+    print('request success'.format(r))
     return r
-  except requests.exceptions.RequestException as e:  # This is the correct syntax
+  except Exception as e:
     print('request error: {}'.format(e))
     return None
 
