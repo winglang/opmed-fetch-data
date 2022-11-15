@@ -40,13 +40,16 @@ def lambda_handler(event, context):
   to_date = default_to_date = today + datetime.timedelta(days=21)
   save_to_blob = False
   
+  if "save" in event:
+    save_to_blob = True
+
   if "queryStringParameters" in event and event["queryStringParameters"] != None:
     if "from" in event["queryStringParameters"]:
       from_date = datetime.datetime.strptime(event["queryStringParameters"]["from"], "%Y-%m-%d")
     if "to" in event["queryStringParameters"]:
       to_date = datetime.datetime.strptime(event["queryStringParameters"]["to"], "%Y-%m-%d")
       
-    if "save" in event["queryStringParameters"] or "save" in event:
+    if "save" in event["queryStringParameters"]:
       save_to_blob = True
       
   delta_days = to_date - from_date
