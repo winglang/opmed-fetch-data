@@ -5,7 +5,7 @@ import datetime
 import time
 import boto3
 
-MAX_DELTA_DAYS = 60
+MAX_DELTA_DAYS = 70
 
 def get_data(url, data, headers):
   for i in range(0, 5):
