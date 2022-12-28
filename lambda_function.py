@@ -74,8 +74,12 @@ def lambda_handler(event, context):
          "Content-Type": "application/json"
       },
       "body": {"error": "fail to fetch data"}
-    }        
+    }  
 
+  #remove description from each item
+  for t in r:
+    r.description = ''
+  
   if save_to_blob:
     try:
       s3 = boto3.resource('s3')
