@@ -97,5 +97,6 @@ def lambda_handler(event, context):
     "headers": {
        "Content-Type": "application/json"
     },
-    "body": json_r
+    "body": json.dumps(r_json, indent=4, sort_keys=True, default=str)
+
   }
