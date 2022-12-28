@@ -97,5 +97,5 @@ def lambda_handler(event, context):
     "headers": {
        "Content-Type": "application/json"
     },
-    "body": "testIshay"
+    "body": json_r
   }
