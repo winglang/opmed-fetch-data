@@ -77,9 +77,9 @@ def lambda_handler(event, context):
     }  
 
   #remove description from each item
-  json_r = r.json()
-  for t in json_r:
-    if 'description' in t.keys(): del t['description']
+#   json_r = r.json()
+#   for t in json_r:
+#     if 'description' in t.keys(): del t['description']
   
   if save_to_blob:
     try:
@@ -97,6 +97,6 @@ def lambda_handler(event, context):
     "headers": {
        "Content-Type": "application/json"
     },
-    "body": json.dumps(r_json, indent=4, sort_keys=True, default=str)
+    "body": r.content
 
   }
