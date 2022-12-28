@@ -78,7 +78,7 @@ def lambda_handler(event, context):
 
   #remove description from each item
   for t in r:
-    r.description = ''
+    t.description = ''
   
   if save_to_blob:
     try:
