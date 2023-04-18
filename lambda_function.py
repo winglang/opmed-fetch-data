@@ -82,11 +82,6 @@ def lambda_handler(event, context):
       "body": {"error": "fail to fetch data"}
     }  
 
-  #remove description from each item
-#   json_r = r.json()
-#   for t in json_r:
-#     if 'description' in t.keys(): del t['description']
-  
   if save_to_blob:
     try:
       s3 = boto3.resource('s3')
