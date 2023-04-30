@@ -3,15 +3,9 @@ import os
 import datetime
 import boto3
 
-from models.block_model_fetched import BlockModelFetched
-from models.operation_model_fetched import OperationModelFetched
 from services import get_service, Service
 
 MAX_DELTA_DAYS = 370
-
-
-def filter_data(item, whitelist):
-    return {key: item[key] for key in whitelist if key in item}
 
 
 def lambda_handler(event, context):
@@ -73,17 +67,6 @@ def lambda_handler(event, context):
             },
             "body": {"error": "fail to fetch data"}
         }
-
-    response_objects = []
-    for item in recordsArray:
-        if 'allDay' in item:
-            filtered_data = filter_data(item, BlockModelFetched.swagger_types.keys())
-            # response_objects.append(filtered_data)
-            response_objects.append(BlockModelFetched(**filtered_data).to_dict())
-        else:
-            filtered_data = filter_data(item, OperationModelFetched.swagger_types.keys())
-            # response_objects.append(filtered_data)
-            response_objects.append(OperationModelFetched(**filtered_data).to_dict())
 
     response_fetch = json.dumps(response_objects)
 

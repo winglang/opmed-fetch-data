@@ -2,6 +2,8 @@ import os
 import requests
 import time
 
+from utils import convert_dictionary_to_model
+
 
 def get_url():
     return 'https://plannerd.greatmix.ai/fetch-data'
@@ -9,11 +11,6 @@ def get_url():
 
 def get_headers():
     headers = {
-        # "Host": os.environ['HOST'],
-        # "accept-charset": "utf-8",
-        # "authorization": os.environ['AUTHORIZATION'],
-        # "cache-control": "no-cache",
-        # "content-type": "application/json",
         "Cookie": os.environ['COOKIE'],
     }
     return headers
@@ -23,7 +20,7 @@ def get_data(url, data, headers):
     for i in range(0, 1):
         r = get_data_base(url, data, headers)
         if r is not None:
-            return r.json()
+            return convert_dictionary_to_model(r.json())
         time.sleep(20)
 
     return None

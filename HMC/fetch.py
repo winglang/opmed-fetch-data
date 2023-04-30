@@ -2,6 +2,8 @@ import os
 import requests
 import time
 
+from utils import convert_dictionary_to_model
+
 
 def get_url():
     return '{}/api/external/fullcalendar_events_ajax'.format(os.environ['HAPROXY_PATH'])
@@ -22,7 +24,7 @@ def get_data(url, data, headers):
     for i in range(0, 1):
         r = get_data_base(url, data, headers)
         if r is not None:
-            return r.json()
+            return convert_dictionary_to_model(r.json())
         time.sleep(20)
 
     return None

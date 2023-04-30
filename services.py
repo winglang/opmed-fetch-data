@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class Service(Enum):
-    HMC = "hmc_group"
-    FHIR = "fhir_group"
+    HMC = "hmc-users"
+    FHIR = "fhir-users"
 
 
 def get_user_groups(event):
