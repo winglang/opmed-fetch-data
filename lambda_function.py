@@ -68,7 +68,7 @@ def lambda_handler(event, context):
             "body": {"error": "fail to fetch data"}
         }
 
-    response_fetch = json.dumps(response_objects)
+    response_fetch = json.dumps(recordsArray)
 
     # Print response
     print(response_fetch)

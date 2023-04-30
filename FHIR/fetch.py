@@ -11,14 +11,15 @@ def get_url():
 
 def get_headers():
     headers = {
-        "Cookie": os.environ['COOKIE'],
+        "Cookie": os.environ['COOKIE']
     }
     return headers
 
 
 def get_data(url, data, headers):
     for i in range(0, 1):
-        r = get_data_base(url, data, headers)
+        u = f'{url}?from={data["start"]}&to={data["end"]}'
+        r = get_data_base(u, data, headers)
         if r is not None:
             return convert_dictionary_to_model(r.json())
         time.sleep(20)
