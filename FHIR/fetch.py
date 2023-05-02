@@ -1,7 +1,9 @@
+import json
 import os
 import requests
 import time
 
+from fake_data import createBlocksAndCases
 from utils import convert_dictionary_to_model
 
 
@@ -17,27 +19,4 @@ def get_headers():
 
 
 def get_data(url, data, headers):
-    for i in range(0, 1):
-        u = f'{url}?from={data["start"]}&to={data["end"]}'
-        r = get_data_base(u, data, headers)
-        if r is not None:
-            return convert_dictionary_to_model(r.json())
-        time.sleep(20)
-
-    return None
-
-
-def get_data_base(url, data, headers):
-    try:
-        r = requests.post(url, json=data, headers=headers, verify=False)
-        if int(r.status_code) != 200:
-            print('ERROR: request error: {} {}'.format(r.text, r.status_code))
-            print('ERROR: request request: {}'.format(r))
-            print('ERROR: request headers: {}'.format(r.headers))
-            return None
-
-        print('request success'.format(r))
-        return r
-    except Exception as e:
-        print('ERROR: request error: {}'.format(e))
-        return None
+    return createBlocksAndCases(10, 3)

@@ -62,7 +62,7 @@ class OperationModelFetched(TimeModel):
         'setup_time': 'setup_time'
     }
 
-    def __init__(self, id=None, start=None, end=None, resourceId=None, room_id=None, parent_block_id=None, surgery_id=None, doc_name=None, sur_name=None, type=None, procedure=None,
+    def __init__(self, id, start, end, room_id, parent_block_id, surgery_id, resourceId=None, doc_name=None, sur_name=None, procedure=None,
                  monitoring_request=None, xray_type=None, xray_type_value=None, tee_request=None,
                  heart_lung_machine_request=None, additional_equipment=None, setup_time=None):  # noqa: E501
         super().__init__(id, start, end, resourceId, room_id)

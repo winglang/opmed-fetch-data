@@ -1,6 +1,8 @@
 import os
 import datetime
 import aws_lambda_context
+
+from fake_data import createBlocksAndCases
 from lambda_function import lambda_handler
 
 
@@ -37,7 +39,10 @@ def main():
     response = lambda_handler(event, context)
 
     # Print the response
-    print(response)
+    # print(response)
+
+    # mockData = createBlocksAndCases(10, 3)
+    # print(mockData)
 
 
 if __name__ == '__main__':
