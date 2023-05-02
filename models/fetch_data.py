@@ -4,7 +4,7 @@ from pydantic import BaseModel, validator
 
 
 class TimeModel(BaseModel):
-    id: int
+    id: Optional[int]
     start: datetime
     end: datetime
     resourceId: str
@@ -26,14 +26,14 @@ class AdditionalResourceModel(BaseModel):
 
 
 class CurrentProcedureModel(BaseModel):
-    side: str
-    surgery_category: str
+    side: Union[str, None]
+    surgery_category: Union[str, None]
     surgery_name: str
     procedure: str
     surgery_duration: str
-    procedure_code: str
-    procedure_name: str
-    procedure_icd: str
+    procedure_code: Optional[str]
+    procedure_name: Optional[str]
+    procedure_icd: Optional[str]
 
 
 class ProcedureModel(BaseModel):
@@ -47,7 +47,7 @@ class BlockModelFetched(TimeModel):
     sanitaire_name: Optional[str]
     assistant_name: Optional[str]
     anesthetist_name: Optional[str]
-    doctor_name: str
+    doctor_name: Optional[str]
     doctor_id: int
     doctors_license: str
 
@@ -56,7 +56,7 @@ class OperationModelFetched(TimeModel):
     parent_block_id: int
     surgery_id: int
     doc_name: str
-    sur_name: str
+    sur_name: Optional[str]
     type: str
     procedure: ProcedureModel
     monitoring_request: Optional[str]
@@ -65,7 +65,9 @@ class OperationModelFetched(TimeModel):
     tee_request: Optional[str]
     heart_lung_machine_request: Optional[str]
     additionalEquipment: Optional[AdditionalResourceModel]
-    setup_time: int
+    setup_time: Optional[int]
+    patient_age: Optional[int]
+    anesthesia: str
 
 
 class responseFetch(BaseModel):

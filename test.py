@@ -7,14 +7,14 @@ from lambda_function import lambda_handler
 
 
 def main():
-    two_days_ago = datetime.datetime.now() - datetime.timedelta(days=2)
-    two_weeks_from_now = datetime.datetime.now() + datetime.timedelta(days=14)
+    from_time = datetime.datetime.now()  # - datetime.timedelta(days=2)
+    to_time = datetime.datetime.now() + datetime.timedelta(days=1)
 
     event = {
         'requestContext': {
             'authorizer': {
                 'claims': {
-                    'cognito:groups': ['fhir-users', 'hmc-users']
+                    'cognito:groups': ['fhir-users', 'mock-users', 'hmc-users']
                 }
             }
         },
@@ -23,8 +23,8 @@ def main():
         #     "save": "true"
         # },
         "queryStringParameters": {
-            "from": two_days_ago.strftime("%Y-%m-%d"),
-            "to": two_weeks_from_now.strftime("%Y-%m-%d"),
+            "from": from_time.strftime("%Y-%m-%d"),
+            "to": to_time.strftime("%Y-%m-%d"),
             "save": "true"  # comment this line if you send the flag in body.
         }
     }
