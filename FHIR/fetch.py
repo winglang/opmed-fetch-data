@@ -1,10 +1,6 @@
-import json
 import os
-import requests
-import time
 
-from fake_data import createBlocksAndCases
-from utils import convert_dictionary_to_model
+from fake_data import generate_mock_data
 
 
 def get_url():
@@ -19,4 +15,4 @@ def get_headers():
 
 
 def get_data(url, data, headers):
-    return createBlocksAndCases(10, 3)
+    return generate_mock_data(4, 10, 3)

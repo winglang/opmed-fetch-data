@@ -2,7 +2,7 @@ import os
 import datetime
 import aws_lambda_context
 
-from fake_data import createBlocksAndCases
+# from fake_data import generate_mock_data
 from lambda_function import lambda_handler
 
 
@@ -18,18 +18,18 @@ def main():
                 }
             }
         },
+        # uncomment to send the flag in body.
         # "body": {
         #     "save": "true"
         # },
         "queryStringParameters": {
             "from": two_days_ago.strftime("%Y-%m-%d"),
             "to": two_weeks_from_now.strftime("%Y-%m-%d"),
-            "save": "true"
+            "save": "true"  # comment this line if you send the flag in body.
         }
     }
     context = aws_lambda_context.LambdaContext()
 
-    # os.environ['HAPROXY_PATH'] = 'localhost:3000'
     os.environ['HAPROXY_PATH'] = 'https://plannerd.greatmix.ai'
     os.environ['HOST'] = 'localhost:3000'
     os.environ['AUTHORIZATION'] = 'unit_test'
@@ -39,9 +39,9 @@ def main():
     response = lambda_handler(event, context)
 
     # Print the response
-    # print(response)
+    print(response)
 
-    # mockData = createBlocksAndCases(10, 3)
+    # mockData = generate_mock_data(4, 10, 3)
     # print(mockData)
 
 
