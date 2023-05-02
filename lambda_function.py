@@ -16,6 +16,8 @@ def lambda_handler(event, context):
         from HMC.fetch import get_url, get_headers, get_data
     elif service == Service.FHIR.value:
         from FHIR.fetch import get_url, get_headers, get_data
+    elif service == Service.MOCK.value:
+        from FHIR.fetch import get_url, get_headers, get_data
     else:
         return {
             "statusCode": 401,

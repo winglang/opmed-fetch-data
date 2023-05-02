@@ -4,6 +4,7 @@ from enum import Enum
 class Service(Enum):
     HMC = "hmc-users"
     FHIR = "fhir-users"
+    MOCK = "mock-users"
 
 
 def get_user_groups(event):
