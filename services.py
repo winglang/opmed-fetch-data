@@ -50,4 +50,3 @@ def get_service(event, requested_service=None):
         # Handle any errors that may occur and return None
         print("Error: ", e)
         return None
-

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Type, Union
+from typing import Optional, List, Union
 from pydantic import BaseModel, validator
 
 
@@ -70,7 +70,7 @@ class OperationModelFetched(TimeModel):
     anesthesia: str
 
 
-class responseFetch(BaseModel):
+class ResponseFetch(BaseModel):
     items: List[Union[BlockModelFetched, OperationModelFetched]]
 
     @classmethod

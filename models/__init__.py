@@ -1,5 +1,5 @@
 from .fetch_data import TimeModel, AdditionalResourceModel, CurrentProcedureModel, ProcedureModel, BlockModelFetched, \
-    OperationModelFetched, responseFetch
+    OperationModelFetched, ResponseFetch
 
 __all__ = ["TimeModel",
            "AdditionalResourceModel",
@@ -7,4 +7,4 @@ __all__ = ["TimeModel",
            "ProcedureModel",
            "BlockModelFetched",
            "OperationModelFetched",
-           "responseFetch"]
+           "ResponseFetch"]

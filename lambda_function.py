@@ -61,8 +61,8 @@ def lambda_handler(event, context):
         "end": to_date.strftime("%Y-%m-%d")
     }
 
-    recordsArray = get_data(url, data, headers)
-    if recordsArray is None:
+    records_array = get_data(url, data, headers)
+    if records_array is None:
         return {
             "statusCode": 200,
             "headers": {
@@ -71,7 +71,7 @@ def lambda_handler(event, context):
             "body": {"error": "fail to fetch data"}
         }
 
-    response_fetch = json.dumps(recordsArray, cls=CustomJSONEncoder)
+    response_fetch = json.dumps(records_array, cls=CustomJSONEncoder)
 
     # Print response
     print(response_fetch)

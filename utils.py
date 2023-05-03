@@ -8,9 +8,9 @@ def filter_data(obj, whitelist):
     return {key: item[key] for key in whitelist if key in item}
 
 
-def convert_dictionary_to_model(recordsArray):
+def convert_dictionary_to_model(records_array):
     response_objects = []
-    for item in recordsArray:
+    for item in records_array:
         if 'allDay' in item and 'parent_block_id' not in item:
             filtered_data = filter_data(item, whitelist=list(BlockModelFetched.__fields__.keys()))
             response_objects.append(BlockModelFetched(**filtered_data).dict())
