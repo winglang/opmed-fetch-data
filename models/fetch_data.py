@@ -4,11 +4,11 @@ from pydantic import BaseModel, validator
 
 
 class TimeModel(BaseModel):
-    id: Optional[int]
+    id: Optional[str]
     start: datetime
     end: datetime
     resourceId: str
-    roomId: Optional[int]
+    roomId: Optional[str]
 
 
 class AdditionalResourceModel(BaseModel):
@@ -41,20 +41,20 @@ class ProcedureModel(BaseModel):
 
 
 class BlockModelFetched(TimeModel):
-    id: int
+    id: str
     title: str
     nurse_name: Optional[str]
     sanitaire_name: Optional[str]
     assistant_name: Optional[str]
     anesthetist_name: Optional[str]
     doctor_name: Optional[str]
-    doctor_id: int
-    doctors_license: str
+    doctor_id: str
+    doctors_license: Optional[str]
 
 
 class OperationModelFetched(TimeModel):
-    parent_block_id: int
-    surgery_id: int
+    parent_block_id: str
+    surgery_id: str
     doc_name: str
     sur_name: Optional[str]
     type: str
