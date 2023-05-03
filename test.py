@@ -25,7 +25,7 @@ def main():
         "queryStringParameters": {
             "from": from_time.strftime("%Y-%m-%d"),
             "to": to_time.strftime("%Y-%m-%d"),
-            "save": "true"  # comment this line if you send the flag in body.
+            "save": False # comment this line if you send the flag in body.
         }
     }
     context = aws_lambda_context.LambdaContext()
