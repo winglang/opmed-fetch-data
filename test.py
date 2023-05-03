@@ -14,7 +14,7 @@ def main():
         'requestContext': {
             'authorizer': {
                 'claims': {
-                    'cognito:groups': ['fhir-users', 'mock-users', 'hmc-users']
+                    'cognito:groups': ['mock-users', 'fhir-users', 'mock-users', 'hmc-users']
                 }
             }
         },
