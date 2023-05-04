@@ -19,13 +19,14 @@ def lambda_handler(event, context):
     elif service == Service.MOCK.value:
         from FHIR.fetch import get_url, get_headers, get_data
     else:
-        return {
-            "statusCode": 401,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {"error": "invalid group"}
-        }
+        # return {
+        #     "statusCode": 401,
+        #     "headers": {
+        #         "Content-Type": "application/json"
+        #     },
+        #     "body": {"error": "invalid group"}
+        # }
+        from HMC.fetch import get_url, get_headers, get_data
 
     url = get_url()
     headers = get_headers()
