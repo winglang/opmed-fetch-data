@@ -9,7 +9,7 @@ def get_url():
 
 def get_headers():
     headers = {
-        "Cookie": os.environ['COOKIE']
+        "source": 'mock'
     }
     return headers
 
