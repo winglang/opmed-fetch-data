@@ -53,7 +53,7 @@ def get_url():
 
 def get_headers():
     headers = {
-        "Cookie": os.environ['COOKIE'],
+        "source": 'mock',
         "Content-Type": "application/fhir+json;charset=utf-8"
     }
     return headers
