@@ -67,7 +67,7 @@ class OperationModelFetched(TimeModel):
     additionalEquipment: Optional[AdditionalResourceModel]
     setup_time: Optional[int]
     patient_age: Optional[int]
-    anesthesia: str
+    anesthesia: Optional[str]
 
 
 class ResponseFetch(BaseModel):
