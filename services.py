@@ -1,3 +1,5 @@
+import base64
+import json
 from enum import Enum
 
 
@@ -7,13 +9,29 @@ class Service(Enum):
     MOCK = "mock-users"
 
 
+def get_service_ids_from_cognito_jwt(jwt: dict) -> [str]:
+    return jwt.get("cognito:groups", [""])
+
+
+def get_service_id_from_cognito_cookies(cookies: str) -> str:
+    try:
+        cookies_array = [c for c in cookies.split("; ") if "CognitoIdentityServiceProvider" in c and "accessToken" in c]
+        if len(cookies_array) != 1:
+            raise Exception("Invalid number of cookies")
+        JWT = cookies_array[0].split("=")[1]
+        jwt_payload = json.loads(base64.urlsafe_b64decode(JWT.split(".")[1] + "==="))
+        x = get_service_ids_from_cognito_jwt(jwt_payload)
+        return x
+    except Exception as e:
+        print(e, "cookies error")
+        return ""
+
+
 def get_user_groups(event):
     try:
-        # Access the 'cognito:groups' claim from the authorizer context
-        groups = event['requestContext']['authorizer']['claims']['cognito:groups']
-
-        # Return the groups as a list
-        return groups
+        # Read JWT from cookie (user is authenticated in CF using that cookie)
+        cookies = event['headers']['Cookie']
+        return get_service_id_from_cognito_cookies(cookies)
 
     except KeyError as e:
         # If the 'cognito:groups' claim is not present in the authorizer context, return an empty list

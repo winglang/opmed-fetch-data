@@ -11,21 +11,13 @@ def main():
     to_time = datetime.datetime.now() + datetime.timedelta(days=1)
 
     event = {
-        'requestContext': {
-            'authorizer': {
-                'claims': {
-                    'cognito:groups': ['mock-users', 'fhir-users', 'mock-users', 'hmc-users']
-                }
-            }
-        },
-        # uncomment to send the flag in body.
-        # "body": {
-        #     "save": "true"
-        # },
         "queryStringParameters": {
             "from": from_time.strftime("%Y-%m-%d"),
             "to": to_time.strftime("%Y-%m-%d"),
-            "save": False # comment this line if you send the flag in body.
+            "save": False
+        },
+        "headers": {
+            "Cookie": 'CognitoIdentityServiceProvider.34rg8....Copy cookie from browser;'
         }
     }
     context = aws_lambda_context.LambdaContext()
@@ -33,7 +25,6 @@ def main():
     os.environ['HAPROXY_PATH'] = 'https://plannerd.greatmix.ai'
     os.environ['HOST'] = 'localhost:3000'
     os.environ['AUTHORIZATION'] = 'unit_test'
-    os.environ['COOKIE'] = 'CognitoIdentityServiceProvider.34rg8....Copy cookie from browser'
 
     # Call the lambda_handler function with the event and context objects
     response = lambda_handler(event, context)

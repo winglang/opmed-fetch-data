@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     save_to_blob = False
 
     # Unit test only!
-    service = Service.HMC.value  # get_service(event, None)
+    service = get_service(event, None)
 
     print("event: {}".format(event))
     if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]:
@@ -76,7 +76,7 @@ def lambda_handler(event, context):
     response_fetch = json.dumps(records_array, cls=CustomJSONEncoder)
 
     # Print response
-    print(response_fetch)
+    # print(response_fetch)
 
     if save_to_blob:
         try:
