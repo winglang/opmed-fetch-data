@@ -30,7 +30,7 @@ def main():
     response = lambda_handler(event, context)
 
     # Print the response
-    print(response)
+    # print(response)
 
     # mockData = generate_mock_data(4, 10, 3)
     # print(mockData)
