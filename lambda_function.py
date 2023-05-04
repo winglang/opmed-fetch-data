@@ -10,14 +10,16 @@ MAX_DELTA_DAYS = 370
 
 
 def lambda_handler(event, context):
+
+    service = get_service(event, None)
+
     return {
         "statusCode": 200,
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": "ok"
+        "body": service
     }
-    service = get_service(event, None)
 
     if service == Service.HMC.value:
         from HMC.fetch import get_url, get_headers, get_data
