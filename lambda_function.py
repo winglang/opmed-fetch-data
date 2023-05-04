@@ -13,12 +13,14 @@ def lambda_handler(event, context):
 
     service = get_service(event, None)
 
+    print(event)
+    
     return {
         "statusCode": 200,
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": service
+        "body": json.dumps(event)
     }
 
     if service == Service.HMC.value:
