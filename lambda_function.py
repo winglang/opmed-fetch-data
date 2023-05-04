@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     save_to_blob = False
 
     # Unit test only!
-    service = Service.FHIR.value  # get_service(event, None)
+    service = Service.HMC.value  # get_service(event, None)
 
     print("event: {}".format(event))
     if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]:
@@ -50,7 +50,7 @@ def lambda_handler(event, context):
     elif service == Service.FHIR.value:
         from FHIR.fetch import get_url, get_headers, get_data
     elif service == Service.MOCK.value:
-        from FHIR.fetch import get_url, get_headers, get_data
+        from MOCK.fetch import get_url, get_headers, get_data
     else:
         return {
             "statusCode": 401,
