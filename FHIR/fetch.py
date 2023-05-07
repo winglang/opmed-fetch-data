@@ -5,13 +5,16 @@ from fhirpy import SyncFHIRClient
 from models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
 
 
-def create_surgery(appointment, patients_dict):
+def create_surgery(appointment, patients_dict, blocks):
     patients_birth_date = patients_dict[appointment['participant'][1].actor.id].birthDate
+    if not appointment.slot[0].id in blocks:
+        return
+    room_id = blocks[appointment.slot[0].id].resourceId
     return OperationModelFetched(
         id=appointment.id,
         start=appointment.start,
         end=appointment.end,
-        resourceId=appointment.id,
+        resourceId=room_id,
         parent_block_id=appointment.slot[0].id,
         surgery_id=appointment.id,
         doc_name=appointment['participant'][2].actor.display,
@@ -70,13 +73,15 @@ def get_data(url, data, headers):
     slots = client.resources("Slot").search(start__ge=data['start'], start__lt=data['end'], _count=10 ** 5).fetch()
 
     patients_dict = {patient.id: patient for patient in client.resources("Patient").search(_count=10 ** 5).fetch()}
-    surgeries = [create_surgery(appointment, patients_dict) for appointment in appointments]
 
     blocks_main_surgeon_dict = {appointment.slot[0].id: {
         'id': appointment['participant'][2].actor.id,
         'name': appointment['participant'][2].actor.display
     } for appointment in appointments}
 
-    blocks = [create_block(block, blocks_main_surgeon_dict) for block in slots]
+    blocks = {block.id: create_block(block, blocks_main_surgeon_dict) for block in slots}
 
-    return [item.dict() for item in blocks + surgeries]
+    surgeries = [create_surgery(appointment, patients_dict, blocks) for appointment in appointments]
+    surgeries = [surgery for surgery in surgeries if surgery]
+
+    return [item.dict() for item in list(blocks.values()) + surgeries]
