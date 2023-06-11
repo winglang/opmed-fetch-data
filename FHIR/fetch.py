@@ -67,7 +67,7 @@ def get_data(url, data, headers):
         url
     )
 
-    appointments = client.resources("Appointment").search(date__ge=data['start'], date__lt=data['end'],
+    appointments = client.resources("Appointment").search(date__ge=data['start'], date__lt=data['end'], status="booked",
                                                           _count=10 ** 5).fetch()
 
     slots = client.resources("Slot").search(start__ge=data['start'], start__lt=data['end'], _count=10 ** 5).fetch()
