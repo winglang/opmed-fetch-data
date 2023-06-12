@@ -4,7 +4,7 @@ import datetime
 import boto3
 
 from services import get_service, Service
-from fetch.utils import CustomJSONEncoder
+from utils import CustomJSONEncoder
 
 MAX_DELTA_DAYS = 370
 
