@@ -1,6 +1,6 @@
 import json
 
-from fetch.services import get_service, Service
+from services import get_service, Service
 from fetch.utils import CustomJSONEncoder
 
 MAX_DELTA_DAYS = 370
