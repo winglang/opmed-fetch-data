@@ -1,6 +1,4 @@
-import os
-
-from fake_data import generate_mock_data
+from fetch.fake_data import generate_mock_data
 
 
 def get_url():

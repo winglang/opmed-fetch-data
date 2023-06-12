@@ -1,8 +1,9 @@
-import os
 from datetime import datetime
+
+import requests
 from fhirpy import SyncFHIRClient
 
-from models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
+from api.models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
 
 
 def create_surgery(appointment, patients_dict, blocks):
@@ -85,3 +86,23 @@ def get_data(url, data, headers):
     surgeries = [surgery for surgery in surgeries if surgery]
 
     return [item.dict() for item in list(blocks.values()) + surgeries]
+
+
+def update_data(url, data, headers):
+    resources = [
+        {
+            "fullUrl": f"urn:uuid:{resource['id']}",
+            "resource": resource,
+            "request": {"method": "PUT", "url": f"{resource['resourceType']}/{resource['id']}"}
+        }
+        for resource in data['body']
+    ]
+
+    request_data = {
+        "resourceType": "Bundle",
+        "type": "transaction",
+        "entry": resources
+    }
+
+    return requests.post(url=url, data=request_data, headers=headers)
+
