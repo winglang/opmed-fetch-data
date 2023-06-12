@@ -3,8 +3,6 @@ import json
 from services import get_service, Service
 from utils import CustomJSONEncoder
 
-MAX_DELTA_DAYS = 370
-
 
 def lambda_handler(event, context):
     # Unit test only!
