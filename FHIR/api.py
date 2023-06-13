@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 from fhirpy import SyncFHIRClient
 
-from api.models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
+from models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
 
 
 def create_surgery(appointment, patients_dict, blocks):
