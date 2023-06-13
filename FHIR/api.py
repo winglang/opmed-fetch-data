@@ -95,7 +95,7 @@ def update_data(url, data, headers):
             "resource": resource,
             "request": {"method": "PUT", "url": f"{resource['resourceType']}/{resource['id']}"}
         }
-        for resource in data['body']
+        for resource in data
     ]
 
     request_data = {
