@@ -17,9 +17,9 @@ jobs:
       id: tags
       run: |
         if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
-          echo "function=worker" >> $GITHUB_OUTPUT
+          echo "function=update-data" >> $GITHUB_OUTPUT
         elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
-          echo "function=worker-dev" >> $GITHUB_OUTPUT
+          echo "function=update-data-dev" >> $GITHUB_OUTPUT
         else
           echo "Branch not supported"
           exit 1
@@ -35,7 +35,7 @@ jobs:
       uses: yvesgurcan/deploy-lambda-function@v0.0.5
       with:
         package: lambda.zip
-        function-name: fetch-data
+        function-name: ${{ steps.tags.outputs.function }}
         AWS_REGION: us-east-1
         AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
