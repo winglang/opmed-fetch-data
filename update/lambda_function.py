@@ -79,3 +79,29 @@ def lambda_handler(event, context):
         "body": response_update
 
     }
+
+
+if __name__ == '__main__':
+    event = {
+        "body": {
+            "blocks": [
+                {
+                    "id": 'slot-101', "newStartTime": "2023-06-14T07:00:00", "newEndTime": "2023-06-14T17:30:00",
+                    "newRoom": "OR-1"
+                },
+                {
+                    "id": 'slot-102', "newStartTime": '2023-06-14T16:30:00', "newEndTime": '2023-06-14T21:00:00',
+                    "newRoom": "OR-1"
+                }
+            ]
+            ,
+            "cases": [
+                {
+                    "id": 'appointment-23', "newStartTime": '2023-06-14T15:00:00', "newEndTime": '2023-06-14T16:30:00',
+                    "newRoom": "OR-11"
+                }
+            ]
+        }
+    }
+
+    lambda_handler(event, None)
