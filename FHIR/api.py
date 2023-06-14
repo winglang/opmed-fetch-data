@@ -1,3 +1,5 @@
+import base64
+import json
 from datetime import datetime
 
 import requests
@@ -89,20 +91,87 @@ def get_data(url, data, headers):
 
 
 def update_data(url, data, headers):
-    resources = [
+    slots = [dict(item, resource_type='Slot') for item in data['blocks']]
+    appointments = [dict(item, resource_type='Appointment') for item in data['cases']]
+    resources = slots + appointments
+
+    entries = [
         {
-            "fullUrl": f"urn:uuid:{resource['id']}",
-            "resource": resource,
-            "request": {"method": "PUT", "url": f"{resource['resourceType']}/{resource['id']}"}
+            "resource": {
+                "resourceType": "Binary",
+                "contentType": "application/json-patch+json",
+                "data": base64.b64encode(json.dumps(create_patch(resources[0])).encode('ascii')).decode('ascii')
+            },
+            "request": {
+                "method": "PATCH",
+                "url": f"{resource['resource_type']}/{resource['id']}"
+            },
+            "fullUrl": resource['id']
         }
-        for resource in data
+        for resource in resources
     ]
 
     request_data = {
         "resourceType": "Bundle",
         "type": "transaction",
-        "entry": resources
+        "entry": entries
     }
 
-    return requests.post(url=url, data=request_data, headers=headers)
+    return requests.post(url=url, data=json.dumps(request_data), headers=headers)
 
+
+def create_patch(resource):
+    resource_type = resource['resource_type']
+
+    if resource_type == 'Slot':
+        return create_slot_patch(resource)
+    elif resource_type == 'Appointment':
+        return create_appointment_patch(resource)
+    else:
+        return []
+
+
+def create_slot_patch(slot):
+    return [
+        # {
+        #     "op": "replace",
+        #     "path": "/extension/0/valueReference/reference",
+        #     "value": {
+        #         "reference": f"Location/{slot['newRoom']}"
+        #     }
+        # },
+        # {
+        #     "op": "replace",
+        #     "path": "/start",
+        #     "value": slot['newStartTime']
+        # },
+        {
+            "op": "replace",
+            "path": "/end",
+            "value": slot['newEndTime']
+        }
+    ]
+
+
+def create_appointment_patch(appointment):
+    return [
+        {
+            "op": "replace",
+            "path": "/participant/0/actor",
+            "value": {
+                "reference": f"Location/{appointment['newRoom']}",
+                "display":appointment['newRoom']
+            }
+
+        },
+        {
+            "op": "replace",
+            "path": "/start",
+            "value": appointment['newStartTime']
+        },
+        {
+            "op": "replace",
+            "path": "/end",
+            "value": appointment['newEndTime']
+        }
+    ]
