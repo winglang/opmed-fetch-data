@@ -100,7 +100,7 @@ def update_data(url, data, headers):
             "resource": {
                 "resourceType": "Binary",
                 "contentType": "application/json-patch+json",
-                "data": base64.b64encode(json.dumps(create_patch(resources[0])).encode('ascii')).decode('ascii')
+                "data": base64.b64encode(json.dumps(create_patch(resource)).encode('ascii')).decode('ascii')
             },
             "request": {
                 "method": "PATCH",
@@ -113,7 +113,7 @@ def update_data(url, data, headers):
 
     request_data = {
         "resourceType": "Bundle",
-        "type": "transaction",
+        "type": "batch",
         "entry": entries
     }
 
@@ -133,18 +133,22 @@ def create_patch(resource):
 
 def create_slot_patch(slot):
     return [
-        # {
-        #     "op": "replace",
-        #     "path": "/extension/0/valueReference/reference",
-        #     "value": {
-        #         "reference": f"Location/{slot['newRoom']}"
-        #     }
-        # },
-        # {
-        #     "op": "replace",
-        #     "path": "/start",
-        #     "value": slot['newStartTime']
-        # },
+        {
+            "op": "replace",
+            "path": "/extension/0",
+            "value": {
+                "valueReference": {
+                    "reference": f"Location/{slot['newRoom']}",
+                    "display": slot['newRoom']
+                },
+                "url": "http://example.com/extensions#location"
+            }
+        },
+        {
+            "op": "replace",
+            "path": "/start",
+            "value": slot['newStartTime']
+        },
         {
             "op": "replace",
             "path": "/end",
@@ -160,7 +164,7 @@ def create_appointment_patch(appointment):
             "path": "/participant/0/actor",
             "value": {
                 "reference": f"Location/{appointment['newRoom']}",
-                "display":appointment['newRoom']
+                "display": appointment['newRoom']
             }
 
         },
@@ -173,5 +177,12 @@ def create_appointment_patch(appointment):
             "op": "replace",
             "path": "/end",
             "value": appointment['newEndTime']
+        }
+        ,
+        {
+            "op": "replace",
+            "path": "/minutesDuration",
+            "value": (datetime.fromisoformat(appointment['newEndTime']) - datetime.fromisoformat(
+                appointment['newStartTime'])).total_seconds() // 60
         }
     ]
