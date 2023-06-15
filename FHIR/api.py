@@ -124,9 +124,9 @@ def create_patch(resource):
     resource_type = resource['resource_type']
 
     if resource_type == 'Slot':
-        return create_slot_patch(resource)
+        return create_slot_patch(resource['new'])
     elif resource_type == 'Appointment':
-        return create_appointment_patch(resource)
+        return create_appointment_patch(resource['new'])
     else:
         return []
 
@@ -138,8 +138,8 @@ def create_slot_patch(slot):
             "path": "/extension/0",
             "value": {
                 "valueReference": {
-                    "reference": f"Location/{slot['newRoom']}",
-                    "display": slot['newRoom']
+                    "reference": f"Location/{slot['roomId']}",
+                    "display": slot['roomId']
                 },
                 "url": "http://example.com/extensions#location"
             }
@@ -147,12 +147,12 @@ def create_slot_patch(slot):
         {
             "op": "replace",
             "path": "/start",
-            "value": slot['newStartTime']
+            "value": datetime.strptime(slot['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
         },
         {
             "op": "replace",
             "path": "/end",
-            "value": slot['newEndTime']
+            "value": datetime.strptime(slot['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
         }
     ]
 
@@ -163,26 +163,26 @@ def create_appointment_patch(appointment):
             "op": "replace",
             "path": "/participant/0/actor",
             "value": {
-                "reference": f"Location/{appointment['newRoom']}",
-                "display": appointment['newRoom']
+                "reference": f"Location/{appointment['roomId']}",
+                "display": appointment['roomId']
             }
 
         },
         {
             "op": "replace",
             "path": "/start",
-            "value": appointment['newStartTime']
+            "value": datetime.strptime(appointment['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
         },
         {
             "op": "replace",
             "path": "/end",
-            "value": appointment['newEndTime']
+            "value": datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
         }
         ,
         {
             "op": "replace",
             "path": "/minutesDuration",
-            "value": (datetime.fromisoformat(appointment['newEndTime']) - datetime.fromisoformat(
-                appointment['newStartTime'])).total_seconds() // 60
+            "value": (datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S') - datetime.strptime(
+                appointment['startTime'], '%Y-%m-%dT%H:%M:%S')).total_seconds() // 60
         }
     ]

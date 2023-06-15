@@ -51,7 +51,7 @@ def lambda_handler(event, context):
             "body": {"error": "fail to fetch data"}
         }
 
-    response_update = json.dumps(records_array, cls=CustomJSONEncoder)
+    response_update = json.dumps(json.loads(records_array.text), cls=CustomJSONEncoder)
 
     if save_to_blob:
         try:
@@ -84,21 +84,47 @@ def lambda_handler(event, context):
 if __name__ == '__main__':
     event = {
         "body": {
-            "blocks": [
-                {
-                    "id": 'slot-101', "newStartTime": "2023-06-14T07:00:00", "newEndTime": "2023-06-14T17:30:00",
-                    "newRoom": "OR-1"
-                },
-                {
-                    "id": 'slot-102', "newStartTime": '2023-06-14T16:30:00', "newEndTime": '2023-06-14T21:00:00',
-                    "newRoom": "OR-1"
-                }
-            ]
-            ,
             "cases": [
                 {
-                    "id": 'appointment-23', "newStartTime": '2023-06-14T15:00:00', "newEndTime": '2023-06-14T16:30:00',
-                    "newRoom": "OR-11"
+                    "id": "appointment-1531",
+                    "new": {
+                        "roomId": "OR-5",
+                        "startTime": "2023-06-15T7:0:00",
+                        "endTime": "2023-06-15T8:30:00"
+                    },
+                    "old": {
+                        "roomId": "OR-1",
+                        "startTime": "2023-06-15T07:00:00",
+                        "endTime": "2023-06-15T08:30:00"
+                    }
+                },
+                {
+                    "id": "appointment-2323",
+                    "new": {
+                        "roomId": "OR-5",
+                        "startTime": "2023-06-15T8:30:00",
+                        "endTime": "2023-06-15T11:15:00"
+                    },
+                    "old": {
+                        "roomId": "OR-1",
+                        "startTime": "2023-06-15T08:30:00",
+                        "endTime": "2023-06-15T11:15:00"
+                    }
+                }
+            ],
+            "blocks": [
+                {
+                    "id": "slot-151",
+                    "new": {
+                        "roomId": "OR-5",
+                        "startTime": "2023-06-15T07:00:00",
+                        "endTime": "2023-06-15T11:30:00"
+                    },
+                    "old": {
+                        "roomId": "OR-1",
+                        "startTime": "2023-06-15T07:00:00",
+                        "endTime": "2023-06-15T11:30:00"
+                    }
                 }
             ]
         }
