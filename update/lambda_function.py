@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     url = get_url()
     headers = get_headers()
 
-    data = event['body']
+    data = json.loads(event['body'])
     records_array = update_data(url, data, headers)
     if records_array is None:
         return {
@@ -87,12 +87,12 @@ if __name__ == '__main__':
                     "id": "appointment-1531",
                     "new": {
                         "roomId": "OR-5",
-                        "startTime": "2023-06-15T7:0:00",
+                        "startTime": "2023-06-15T07:0:00",
                         "endTime": "2023-06-15T8:30:00"
                     },
                     "old": {
                         "roomId": "OR-1",
-                        "startTime": "2023-06-15T07:00:00",
+                        "startTime": "2023-06-15T007:00:00",
                         "endTime": "2023-06-15T08:30:00"
                     }
                 },
@@ -100,7 +100,7 @@ if __name__ == '__main__':
                     "id": "appointment-2323",
                     "new": {
                         "roomId": "OR-5",
-                        "startTime": "2023-06-15T8:30:00",
+                        "startTime": "2023-06-15T08:30:00",
                         "endTime": "2023-06-15T11:15:00"
                     },
                     "old": {
