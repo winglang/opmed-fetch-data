@@ -1,5 +1,8 @@
-import os
+import base64
+import json
 from datetime import datetime
+
+import requests
 from fhirpy import SyncFHIRClient
 
 from models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
@@ -85,3 +88,101 @@ def get_data(url, data, headers):
     surgeries = [surgery for surgery in surgeries if surgery]
 
     return [item.dict() for item in list(blocks.values()) + surgeries]
+
+
+def update_data(url, data, headers):
+    slots = [dict(item, resource_type='Slot') for item in data['blocks']]
+    appointments = [dict(item, resource_type='Appointment') for item in data['cases']]
+    resources = slots + appointments
+
+    entries = [
+        {
+            "resource": {
+                "resourceType": "Binary",
+                "contentType": "application/json-patch+json",
+                "data": base64.b64encode(json.dumps(create_patch(resource)).encode('ascii')).decode('ascii')
+            },
+            "request": {
+                "method": "PATCH",
+                "url": f"{resource['resource_type']}/{resource['id']}"
+            },
+            "fullUrl": resource['id']
+        }
+        for resource in resources
+    ]
+
+    request_data = {
+        "resourceType": "Bundle",
+        "type": "transaction",
+        "entry": entries
+    }
+
+    return requests.post(url=url, data=json.dumps(request_data), headers=headers)
+
+
+def create_patch(resource):
+    resource_type = resource['resource_type']
+
+    if resource_type == 'Slot':
+        return create_slot_patch(resource['new'])
+    elif resource_type == 'Appointment':
+        return create_appointment_patch(resource['new'])
+    else:
+        return []
+
+
+def create_slot_patch(slot):
+    return [
+        {
+            "op": "replace",
+            "path": "/extension/0",
+            "value": {
+                "valueReference": {
+                    "reference": f"Location/{slot['roomId']}",
+                    "display": slot['roomId']
+                },
+                "url": "http://example.com/extensions#location"
+            }
+        },
+        {
+            "op": "replace",
+            "path": "/start",
+            "value": datetime.strptime(slot['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
+        },
+        {
+            "op": "replace",
+            "path": "/end",
+            "value": datetime.strptime(slot['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
+        }
+    ]
+
+
+def create_appointment_patch(appointment):
+    return [
+        {
+            "op": "replace",
+            "path": "/participant/0/actor",
+            "value": {
+                "reference": f"Location/{appointment['roomId']}",
+                "display": appointment['roomId']
+            }
+
+        },
+        {
+            "op": "replace",
+            "path": "/start",
+            "value": datetime.strptime(appointment['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
+        },
+        {
+            "op": "replace",
+            "path": "/end",
+            "value": datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
+        }
+        ,
+        {
+            "op": "replace",
+            "path": "/minutesDuration",
+            "value": (datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S') - datetime.strptime(
+                appointment['startTime'], '%Y-%m-%dT%H:%M:%S')).total_seconds() // 60
+        }
+    ]
