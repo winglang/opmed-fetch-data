@@ -113,7 +113,7 @@ def update_data(url, data, headers):
 
     request_data = {
         "resourceType": "Bundle",
-        "type": "batch",
+        "type": "transaction",
         "entry": entries
     }
 
