@@ -20,8 +20,6 @@ def lambda_handler(event, context):
         save_to_blob = True
 
     if "queryStringParameters" in event and event["queryStringParameters"] is not None:
-        if "service" in event["queryStringParameters"]:
-            service = event["queryStringParameters"]['service']
         if "save" in event["queryStringParameters"]:
             save_to_blob = event["queryStringParameters"]['save']
 
