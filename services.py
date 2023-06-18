@@ -27,6 +27,19 @@ def get_service_id_from_cognito_cookies(cookies: str) -> str:
         return ""
 
 
+def get_username(cookies: str) -> str:
+    try:
+        cookies_array = [c for c in cookies.split("; ") if "CognitoIdentityServiceProvider" in c and "accessToken" in c]
+        if len(cookies_array) != 1:
+            raise Exception("Invalid number of cookies")
+        JWT = cookies_array[0].split("=")[1]
+        jwt_payload = json.loads(base64.urlsafe_b64decode(JWT.split(".")[1] + "==="))
+        return jwt_payload['username']
+    except Exception as e:
+        print(e, "cookies error")
+        return ""
+
+
 def get_user_groups(event):
     try:
         # Read JWT from cookie (user is authenticated in CF using that cookie)

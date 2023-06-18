@@ -4,12 +4,16 @@ from datetime import datetime
 
 import boto3
 
-from services import get_service, Service
+from services import get_service, Service, get_username
 from utils import CustomJSONEncoder
 
 
 def lambda_handler(event, context):
     print(f"event: {event}")
+
+    username = get_username(event['headers']['Cookie'])
+
+    print(f'username: {username}')
 
     # Unit test only!
     service = get_service(event, None)
