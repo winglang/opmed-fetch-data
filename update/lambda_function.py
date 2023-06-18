@@ -9,6 +9,8 @@ from utils import CustomJSONEncoder
 
 
 def lambda_handler(event, context):
+    print(f"event: {event}")
+
     # Unit test only!
     service = get_service(event, None)
 
