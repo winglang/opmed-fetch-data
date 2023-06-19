@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from models import BlockModelFetched, OperationModelFetched
+from fetch.models import BlockModelFetched, OperationModelFetched
 
 
 def filter_data(obj, whitelist):

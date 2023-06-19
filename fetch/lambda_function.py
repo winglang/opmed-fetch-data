@@ -46,7 +46,7 @@ def lambda_handler(event, context):
     if service == Service.HMC.value:
         from HMC.fetch import get_url, get_headers, get_data
     elif service == Service.FHIR.value:
-        from FHIR.fetch import get_url, get_headers, get_data
+        from FHIR.api import get_url, get_headers, get_data
     elif service == Service.MOCK.value:
         from MOCK.fetch import get_url, get_headers, get_data
     else:
