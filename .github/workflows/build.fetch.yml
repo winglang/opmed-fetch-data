@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - fetch/*
+      - fetch/**
       - .github/workflows/build.fetch.yml
 
 jobs:
