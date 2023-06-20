@@ -29,11 +29,15 @@ class CurrentProcedureModel(BaseModel):
     side: Union[str, None]
     surgery_category: Union[str, None]
     surgery_name: str
-    procedure: str
+    procedure: Optional[str] = ''
     surgery_duration: str
     procedure_code: Optional[str]
     procedure_name: Optional[str]
     procedure_icd: Optional[str]
+
+    @validator('procedure')
+    def set_procedure(cls, procedure):
+        return procedure or ''
 
 
 class ProcedureModel(BaseModel):
