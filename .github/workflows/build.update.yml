@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - update/*
+      - update/**
       - .github/workflows/build.update.yml
 
 jobs:
