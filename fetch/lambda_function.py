@@ -3,8 +3,8 @@ import os
 import datetime
 import boto3
 
-from services import get_service, Service
-from utils import CustomJSONEncoder
+from utils.services_utils import get_service, Service, handle_error_response
+from utils.data_utils import CustomJSONEncoder
 
 MAX_DELTA_DAYS = 370
 
@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     save_to_blob = False
 
     # Unit test only!
-    service = get_service(event, None)
+    service = get_service(event)
 
     print("event: {}".format(event))
     if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]:
@@ -44,19 +44,13 @@ def lambda_handler(event, context):
     }
 
     if service == Service.HMC.value:
-        from HMC.fetch import get_url, get_headers, get_data
+        from connectors.HMC.fetch import get_url, get_headers, get_data
     elif service == Service.FHIR.value:
-        from FHIR.api import get_url, get_headers, get_data
+        from connectors.FHIR.api import get_url, get_headers, get_data
     elif service == Service.MOCK.value:
-        from MOCK.fetch import get_url, get_headers, get_data
+        from connectors.MOCK.fetch import get_url, get_headers, get_data
     else:
-        return {
-            "statusCode": 401,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {"error": "invalid group"}
-        }
+        return handle_error_response(service)
 
     url = get_url()
     headers = get_headers()

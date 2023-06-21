@@ -17,6 +17,8 @@ def main():
             "save": False
         },
         "headers": {
+            "gmix_serviceid": "fhir-users",
+            "referer": 'https://plannerd.greatmix.ai/',
             "Cookie": 'CognitoIdentityServiceProvider.34rg8....Copy cookie from browser;'
         }
     }

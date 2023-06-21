@@ -5,7 +5,7 @@ from datetime import datetime
 import requests
 from fhirpy import SyncFHIRClient
 
-from fetch.models import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
+from utils.models.fetch_data import BlockModelFetched, OperationModelFetched, ProcedureModel, CurrentProcedureModel
 
 
 def create_surgery(appointment, patients_dict, blocks):

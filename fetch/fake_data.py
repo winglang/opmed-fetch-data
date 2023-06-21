@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime
 
 from faker import Faker
-from models import AdditionalResourceModel, CurrentProcedureModel, ProcedureModel, BlockModelFetched, \
+from utils.models.fetch_data import AdditionalResourceModel, CurrentProcedureModel, ProcedureModel, BlockModelFetched, \
     OperationModelFetched, ResponseFetch
 
 fake = Faker()
