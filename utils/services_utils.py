@@ -75,7 +75,7 @@ def handle_error_response(error_response):
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": {"error": error_response['error']}
+        "body": json.dumps({"error": error_response['error']})
     }
 
 
