@@ -11,7 +11,7 @@ from utils.data_utils import CustomJSONEncoder
 def lambda_handler(event, context):
     print(f"event: {event}")
 
-    username = get_username(event['headers']['Cookie'])
+    username = get_username(event['headers']['cookie'])
 
     print(f'username: {username}')
 

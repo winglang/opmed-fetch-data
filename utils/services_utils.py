@@ -55,7 +55,7 @@ def get_username(cookies: str) -> str:
 def get_user_groups(event):
     try:
         # Read JWT from cookie (user is authenticated in CF using that cookie)
-        cookies = event['headers']['Cookie']
+        cookies = event['headers']['cookie']
         return get_service_id_from_cognito_cookies(cookies)
 
     except KeyError as e:
@@ -81,7 +81,9 @@ def handle_error_response(error_response):
 
 def get_service(event):
     try:
-        headers = {"gmix_serviceid", "referer", "Cookie"}
+        headers = {"gmix_serviceid", "referer", "cookie"}
+        event['headers'] = {k.lower(): v for k, v in event['headers'].items()}
+
         # check if all headers are received
         if headers.difference(event['headers']):
             return {"statusCode": 400, "error": f'missing headers: {headers.difference(event["headers"])}'}
@@ -89,7 +91,7 @@ def get_service(event):
         # Get the list of user groups from the authorizer context
         groups = get_user_groups(event)
 
-        username = get_username(event['headers']['Cookie'])
+        username = get_username(event['headers']['cookie'])
 
         domain = urlparse(event['headers']['referer']).hostname
 
