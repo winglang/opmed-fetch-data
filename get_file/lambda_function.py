@@ -3,7 +3,7 @@ import json
 import logging
 import boto3
 
-from utils.services_utils import get_service, Service
+from utils.services_utils import get_service, Service, handle_error_response
 
 
 def create_presigned_url(bucket_name, object_name, expiration=600):
@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     if 'file' not in event['queryStringParameters']: return
 
     # Unit test only!
-    service = get_service(event, None)
+    service = get_service(event)
     if service == Service.HMC.value:
         prefix = "HMC"
     elif service == Service.FHIR.value:
@@ -39,13 +39,8 @@ def lambda_handler(event, context):
     elif service == Service.DEMO.value:
         prefix = "DEMO"
     else:
-        return {
-            "statusCode": 401,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {"error": "invalid group"}
-        }
+        return handle_error_response(service)
+
     s3_path = prefix + "/" + event['queryStringParameters']['file']
     url = create_presigned_url(os.environ['BUCKET'], s3_path, os.environ['EXPIRATION'])
 

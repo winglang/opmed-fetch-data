@@ -4,7 +4,7 @@ from datetime import datetime
 
 import boto3
 
-from utils.services_utils import get_service, Service, get_username
+from utils.services_utils import get_service, Service, get_username, handle_error_response
 from utils.data_utils import CustomJSONEncoder
 
 
@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     print(f'username: {username}')
 
     # Unit test only!
-    service = get_service(event, None)
+    service = get_service(event)
 
     save_to_blob = False
 
@@ -33,13 +33,7 @@ def lambda_handler(event, context):
         from connectors.FHIR.api import get_url, get_headers, update_data
 
     else:
-        return {
-            "statusCode": 401,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {"error": "invalid group"}
-        }
+        return handle_error_response(service)
 
     url = get_url()
     headers = get_headers()

@@ -1,6 +1,17 @@
 import base64
 import json
 from enum import Enum
+from urllib.parse import urlparse
+
+DOMAIN_TO_USER_GROUPS = {
+    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
+    'planners.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
+    'planner.greatmix.ai': {"hmc-users"},
+    'demo.greatmix.ai': {"demo-users"},
+    'fhir.greatmix.ai': {"fhir-users"},
+    'umh-dev.greatmix.ai': {"umh-users"},
+    'umh.greatmix.ai': {"umh-users"}
+}
 
 
 class Service(Enum):
@@ -58,27 +69,48 @@ def get_user_groups(event):
         return []
 
 
-def get_service(event, requested_service=None):
+def handle_error_response(error_response):
+    return {
+        "statusCode": error_response['statusCode'],
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": {"error": error_response['error']}
+    }
+
+
+def get_service(event):
     try:
         # Get the list of user groups from the authorizer context
         groups = get_user_groups(event)
 
-        # If the groups list is empty or has no items, return None
-        if not groups or len(groups) == 0:
-            return None
+        username = get_username(event['headers']['Cookie'])
 
-        # If the requested service is not provided, return the first group in the list
-        if requested_service is None:
-            return groups[0]
+        domain = urlparse(event['headers']['referer']).hostname
+
+        # If requested domain is unrecognized, return None
+        if domain not in DOMAIN_TO_USER_GROUPS:
+            return {"statusCode": 404, "error": f'invalid domain: {domain}'}
+
+        requested_service = event['headers']['gmix_serviceid']
+
+        if requested_service not in groups:
+            return {"statusCode": 401, "error": f'{username} is not a member of {requested_service}'}
+
+        allowed_groups = DOMAIN_TO_USER_GROUPS[domain].intersection(set(groups))
+
+        # If user is not allowed to domain, return None
+        if not allowed_groups:
+            return {"statusCode": 401, "error": f'{username} unauthorized to access {domain}'}
 
         # If the requested service is found in the list of groups, return it
-        if requested_service in groups:
+        if requested_service in allowed_groups:
             return requested_service
 
         # If the requested service is not found in the list of groups, return None
-        return None
+        return {"statusCode": 401, "error": f'{username} unauthorized to access {requested_service} in domain {domain}'}
 
     except Exception as e:
         # Handle any errors that may occur and return None
         print("Error: ", e)
-        return None
+        return {"statusCode": 500, "error": e}
