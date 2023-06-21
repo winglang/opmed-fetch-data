@@ -7,6 +7,8 @@ on:
       - develop
     paths:
       - update/**
+      - utils/**
+      - connectors/**
       - .github/workflows/build.update.yml
 
 jobs:
@@ -30,7 +32,7 @@ jobs:
         python-version: '3.10'
     - run: pip install -r requirements.txt
     - name: zip lambda
-      run: zip -r lambda.zip *
+      run: zip -r lambda.zip update utils connectors
     - name: Deploy AWS Lambda function
       uses: yvesgurcan/deploy-lambda-function@v0.0.5
       with:

@@ -3,8 +3,8 @@ import os
 import datetime
 import boto3
 
-from services import get_service, Service
-from utils import CustomJSONEncoder
+from utils.services_utils import get_service, Service
+from utils.data_utils import CustomJSONEncoder
 
 MAX_DELTA_DAYS = 370
 
@@ -44,11 +44,11 @@ def lambda_handler(event, context):
     }
 
     if service == Service.HMC.value:
-        from HMC.fetch import get_url, get_headers, get_data
+        from connectors.HMC.fetch import get_url, get_headers, get_data
     elif service == Service.FHIR.value:
-        from FHIR.api import get_url, get_headers, get_data
+        from connectors.FHIR.api import get_url, get_headers, get_data
     elif service == Service.MOCK.value:
-        from MOCK.fetch import get_url, get_headers, get_data
+        from connectors.MOCK.fetch import get_url, get_headers, get_data
     else:
         return {
             "statusCode": 401,
