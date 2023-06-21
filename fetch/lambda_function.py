@@ -57,13 +57,8 @@ def lambda_handler(event, context):
 
     records_array = get_data(url, data, headers)
     if records_array is None:
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {"error": "fail to fetch data"}
-        }
+        return handle_error_response({"statusCode": 200, "error": "fail to fetch data"})
+
 
     response_fetch = json.dumps(records_array, cls=CustomJSONEncoder)
 

@@ -41,13 +41,7 @@ def lambda_handler(event, context):
     data = json.loads(event['body'])
     records_array = update_data(url, data, headers)
     if records_array is None:
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": {"error": "fail to fetch data"}
-        }
+        return handle_error_response({"statusCode": 200, "error": "fail to update data"})
 
     response_update = json.dumps(json.loads(records_array.text), cls=CustomJSONEncoder)
 
