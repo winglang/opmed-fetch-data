@@ -81,6 +81,11 @@ def handle_error_response(error_response):
 
 def get_service(event):
     try:
+        headers = {"gmix_serviceid", "referer", "Cookie"}
+        # check if all headers are received
+        if headers.difference(event['headers']):
+            return {"statusCode": 400, "error": f'missing headers: {headers.difference(event["headers"])}'}
+
         # Get the list of user groups from the authorizer context
         groups = get_user_groups(event)
 
@@ -88,7 +93,7 @@ def get_service(event):
 
         domain = urlparse(event['headers']['referer']).hostname
 
-        # If requested domain is unrecognized, return None
+        # If requested domain is unrecognized, return 404
         if domain not in DOMAIN_TO_USER_GROUPS:
             return {"statusCode": 404, "error": f'invalid domain: {domain}'}
 
@@ -99,7 +104,7 @@ def get_service(event):
 
         allowed_groups = DOMAIN_TO_USER_GROUPS[domain].intersection(set(groups))
 
-        # If user is not allowed to domain, return None
+        # If user is not allowed to domain, return 401
         if not allowed_groups:
             return {"statusCode": 401, "error": f'{username} unauthorized to access {domain}'}
 
@@ -107,7 +112,7 @@ def get_service(event):
         if requested_service in allowed_groups:
             return requested_service
 
-        # If the requested service is not found in the list of groups, return None
+        # If the requested service is not found in the list of groups, return 401
         return {"statusCode": 401, "error": f'{username} unauthorized to access {requested_service} in domain {domain}'}
 
     except Exception as e:
