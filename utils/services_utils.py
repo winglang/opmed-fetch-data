@@ -7,6 +7,7 @@ class Service(Enum):
     HMC = "hmc-users"
     FHIR = "fhir-users"
     MOCK = "mock-users"
+    DEMO = "demo-users"
 
 
 def get_service_ids_from_cognito_jwt(jwt: dict) -> [str]:
