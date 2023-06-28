@@ -81,12 +81,8 @@ def handle_error_response(error_response):
 
 def get_service(event):
     try:
-        headers = {"gmix_serviceid", "referer", "cookie"}
-        event['headers'] = {k.lower(): v for k, v in event['headers'].items()}
-
-        # check if all headers are received
-        if headers.difference(event['headers']):
-            return {"statusCode": 400, "error": f'missing headers: {headers.difference(event["headers"])}'}
+        if lowercase_headers(event):
+            return lowercase_headers(event)
 
         # Get the list of user groups from the authorizer context
         groups = get_user_groups(event)
@@ -125,3 +121,12 @@ def get_service(event):
         # Handle any errors that may occur and return None
         print("Error: ", e)
         return {"statusCode": 500, "error": e}
+
+
+def lowercase_headers(event):
+    headers = {"gmix_serviceid", "referer", "cookie"}
+    event['headers'] = {k.lower(): v for k, v in event['headers'].items()}
+
+    # check if all headers are received
+    if headers.difference(event['headers']):
+        return {"statusCode": 400, "error": f'missing headers: {headers.difference(event["headers"])}'}

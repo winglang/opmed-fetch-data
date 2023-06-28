@@ -3,13 +3,20 @@ import os
 import datetime
 import boto3
 
-from utils.services_utils import get_service, Service, handle_error_response
+from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 from utils.data_utils import CustomJSONEncoder
 
 MAX_DELTA_DAYS = 370
 
 
 def lambda_handler(event, context):
+    if lowercase_headers(event):
+        return lowercase_headers(event)
+
+    username = get_username(event['headers']['cookie'])
+
+    print(f'username: {username}')
+
     today = datetime.date.today()
     from_date = default_from_date = today - datetime.timedelta(days=3)
     to_date = default_to_date = today + datetime.timedelta(days=21)

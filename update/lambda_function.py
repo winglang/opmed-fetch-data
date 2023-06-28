@@ -4,12 +4,15 @@ from datetime import datetime
 
 import boto3
 
-from utils.services_utils import get_service, Service, get_username, handle_error_response
+from utils.services_utils import get_service, Service, get_username, handle_error_response, lowercase_headers
 from utils.data_utils import CustomJSONEncoder
 
 
 def lambda_handler(event, context):
     print(f"event: {event}")
+
+    if lowercase_headers(event):
+        return lowercase_headers(event)
 
     username = get_username(event['headers']['cookie'])
 
