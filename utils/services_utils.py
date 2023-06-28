@@ -99,16 +99,20 @@ def get_service(event):
         if domain not in DOMAIN_TO_USER_GROUPS:
             return {"statusCode": 404, "error": f'invalid domain: {domain}'}
 
-        requested_service = event['headers']['gmix_serviceid']
-
-        if requested_service not in groups:
-            return {"statusCode": 401, "error": f'{username} is not a member of {requested_service}'}
-
         allowed_groups = DOMAIN_TO_USER_GROUPS[domain].intersection(set(groups))
 
         # If user is not allowed to domain, return 401
         if not allowed_groups:
             return {"statusCode": 401, "error": f'{username} unauthorized to access {domain}'}
+
+        # return data if domain is single tenant
+        if len(DOMAIN_TO_USER_GROUPS[domain]) == 1:
+            return next(iter(DOMAIN_TO_USER_GROUPS[domain]))
+
+        requested_service = event['headers']['gmix_serviceid']
+
+        if requested_service not in groups:
+            return {"statusCode": 401, "error": f'{username} is not a member of {requested_service}'}
 
         # If the requested service is found in the list of groups, return it
         if requested_service in allowed_groups:
