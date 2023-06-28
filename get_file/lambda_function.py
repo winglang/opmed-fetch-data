@@ -3,7 +3,7 @@ import json
 import logging
 import boto3
 
-from utils.services_utils import get_service, Service, handle_error_response
+from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 
 
 def create_presigned_url(bucket_name, object_name, expiration=600):
@@ -24,6 +24,14 @@ def create_presigned_url(bucket_name, object_name, expiration=600):
 
 def lambda_handler(event, context):
     print(event)
+
+    if lowercase_headers(event):
+        return lowercase_headers(event)
+
+    username = get_username(event['headers']['cookie'])
+
+    print(f'username: {username}')
+
     for key in event: print(key)
     if 'queryStringParameters' not in event: return
     if 'file' not in event['queryStringParameters']: return
