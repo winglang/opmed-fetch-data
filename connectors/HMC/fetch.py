@@ -2,7 +2,7 @@ import os
 import requests
 import time
 
-from utils import convert_dictionary_to_model
+from utils.data_utils import convert_dictionary_to_model
 
 
 def get_url():

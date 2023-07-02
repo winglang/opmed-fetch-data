@@ -6,10 +6,9 @@ on:
       - main
       - develop
     paths:
-      - update/**
+      - get_file/**
       - utils/**
-      - connectors/**
-      - .github/workflows/build.update.yml
+      - .github/workflows/build.get-file.yml
 
 jobs:
   deploy:
@@ -19,9 +18,9 @@ jobs:
       id: tags
       run: |
         if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
-          echo "function=update-data" >> $GITHUB_OUTPUT
+          echo "function=get-file" >> $GITHUB_OUTPUT
         elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
-          echo "function=update-data-dev" >> $GITHUB_OUTPUT
+          echo "function=get-file-dev" >> $GITHUB_OUTPUT
         else
           echo "Branch not supported"
           exit 1
@@ -32,7 +31,7 @@ jobs:
         python-version: '3.10'
     - run: pip install -r requirements.txt
     - name: zip lambda
-      run: zip -r lambda.zip update utils connectors
+      run: zip -r lambda.zip get_file utils
     - name: Deploy AWS Lambda function
       uses: yvesgurcan/deploy-lambda-function@v0.0.5
       with:
