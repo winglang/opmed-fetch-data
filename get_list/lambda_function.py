@@ -31,11 +31,6 @@ def lambda_handler(event, context):
 
     print(f'username: {username}')
 
-    for key in event: print(key)
-    if 'queryStringParameters' not in event: return
-    if 'file' not in event['queryStringParameters']: return
-
-    # Unit test only!
     service = get_service(event)
     if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value, Service.DEMO.value]:
         return handle_error_response(service)
