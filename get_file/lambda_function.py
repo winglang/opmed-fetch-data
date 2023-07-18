@@ -36,20 +36,11 @@ def lambda_handler(event, context):
     if 'queryStringParameters' not in event: return
     if 'file' not in event['queryStringParameters']: return
 
-    # Unit test only!
     service = get_service(event)
-    if service == Service.HMC.value:
-        prefix = "HMC"
-    elif service == Service.FHIR.value:
-        prefix = "FHIR"
-    elif service == Service.MOCK.value:
-        prefix = "MOCK"
-    elif service == Service.DEMO.value:
-        prefix = "DEMO"
-    else:
+    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value, Service.DEMO.value]:
         return handle_error_response(service)
 
-    s3_path = prefix + "/" + event['queryStringParameters']['file']
+    s3_path = os.getenv('prefix', '') + service + "/" + event['queryStringParameters']['file']
     url = create_presigned_url(os.environ['BUCKET'], s3_path, os.environ['EXPIRATION'])
 
     return {
