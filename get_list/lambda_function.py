@@ -18,7 +18,10 @@ def get_list_by_service(service):
     paginator = s3_client.get_paginator('list_objects_v2')
     page_iterator = paginator.paginate(Bucket=os.getenv('BUCKET'), Prefix=f'lambda/{service}/')
 
-    return [object_file for page in page_iterator for object_file in page['Contents']]
+    object_list = [object_file for page in page_iterator for object_file in page['Contents']]
+    for object_file in object_list:
+        object_file['Key'] = object_list[0]['Key'].split("/")[-1]
+    return object_list
 
 
 def lambda_handler(event, context):
@@ -49,6 +52,6 @@ def lambda_handler(event, context):
             "Content-Type": "application/json"
         },
         "body": json.dumps({
-            "url": objects_list
+            "list": objects_list
         }, cls=DateEncoder)
     }
