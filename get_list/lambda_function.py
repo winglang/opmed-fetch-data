@@ -20,7 +20,7 @@ def get_list_by_service(service):
 
     object_list = [object_file for page in page_iterator for object_file in page['Contents']]
     for object_file in object_list:
-        object_file['Key'] = object_list[0]['Key'].split("/")[-1]
+        object_file['Key'] = object_file['Key'].split("/")[-1]
     return object_list
 
 
