@@ -23,7 +23,7 @@ def get_headers():
     return headers
 
 
-def fetch_all_data_concurrently(url, data, headers, chunk_size=1):
+def fetch_all_data_concurrently(url, data, headers, chunk_size=2):
     with ThreadPoolExecutor(max_workers=30) as executor:
         start_date = datetime.strptime(data['start'], "%Y-%m-%d")
         end_data = datetime.strptime(data['end'], "%Y-%m-%d")
