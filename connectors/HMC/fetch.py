@@ -1,3 +1,4 @@
+import itertools
 import os
 from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
@@ -41,25 +42,29 @@ def fetch_all_data_concurrently(url, data, headers, chunk_size=2):
                 "end": end.strftime("%Y-%m-%d")
             }
             requests_data_to_send += [(url, data_to_send, headers)]
-        future_to_key = [executor.submit(fetch_request, *request_data) for request_data in requests_data_to_send]
+        future_to_key = {
+            executor.submit(fetch_request, *request_data): datetime.strptime(request_data[1]['start'], "%Y-%m-%d") for
+            request_data in requests_data_to_send}
 
         for future in futures.as_completed(future_to_key):
+            key = future_to_key[future]
             exception = future.exception()
 
             if not exception:
-                yield future.result()
+                yield key, future.result()
             else:
-                yield exception
+                yield key, exception
 
 
 def get_data(url, data, headers):
-    results = []
-    for result in fetch_all_data_concurrently(url=url, data=data, headers=headers):
+    results = {}
+    for key, result in fetch_all_data_concurrently(url=url, data=data, headers=headers):
         if isinstance(result, Exception):
             raise result
-        results += result
+        results[key] = result
+    sorted_results = dict(sorted(results.items()))
 
-    return results
+    return list(itertools.chain.from_iterable(sorted_results.values()))
 
 
 def fetch_request(url, data, headers):
