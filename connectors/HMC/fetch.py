@@ -68,9 +68,11 @@ def get_data(url, data, headers):
 
 
 def fetch_request(url, data, headers):
-    r = get_data_base(url, data, headers)
+    r = post_request_with_retries(url, data, headers, retries=5)
     if r is not None:
         return convert_dictionary_to_model(r.json())
+    print(f'failed to retrieve data for: {data}')
+    return []
 
 
 def get_data_base(url, data, headers):
@@ -87,3 +89,10 @@ def get_data_base(url, data, headers):
     except Exception as e:
         print('ERROR: request error: {}'.format(e))
         return None
+
+
+def post_request_with_retries(url, data, headers, retries=5):
+    for i in range(retries):
+        r = get_data_base(url, data, headers)
+        if r is not None:
+            return r
