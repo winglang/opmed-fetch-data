@@ -71,6 +71,7 @@ def fetch_request(url, data, headers):
     r = post_request_with_retries(url, data, headers, retries=5)
     if r is not None:
         return convert_dictionary_to_model(r.json())
+    print(f'failed to retrieve data for: {data}')
     return []
 
 
