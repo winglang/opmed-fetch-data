@@ -40,7 +40,7 @@ def fetch_all_data_concurrently(url, data, headers, chunk_size=1):
                 "start": start.strftime("%Y-%m-%d"),
                 "end": end.strftime("%Y-%m-%d")
             }
-            data_to_send += [(url, data_to_send, headers)]
+            requests_data_to_send += [(url, data_to_send, headers)]
         future_to_key = [executor.submit(fetch_request, *request_data) for request_data in requests_data_to_send]
 
         for future in futures.as_completed(future_to_key):
