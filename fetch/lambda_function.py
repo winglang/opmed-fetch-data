@@ -1,10 +1,11 @@
+import datetime
 import json
 import os
-import datetime
+
 import boto3
 
-from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 from utils.data_utils import CustomJSONEncoder
+from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 
 MAX_DELTA_DAYS = 370
 
@@ -65,7 +66,6 @@ def lambda_handler(event, context):
     records_array = get_data(url, data, headers)
     if records_array is None:
         return handle_error_response({"statusCode": 200, "error": "fail to fetch data"})
-
 
     response_fetch = json.dumps(records_array, cls=CustomJSONEncoder)
 
