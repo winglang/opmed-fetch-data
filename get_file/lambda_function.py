@@ -1,6 +1,7 @@
-import os
 import json
 import logging
+import os
+
 import boto3
 
 from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
@@ -20,6 +21,17 @@ def create_presigned_url(bucket_name, object_name, expiration=600):
         return "Error"
 
     return response
+
+
+def get_last_modified(bucket_name, object_name):
+    s3_client = boto3.client('s3', region_name=os.environ['REGION'],
+                             config=boto3.session.Config(signature_version='s3v4', ))
+    try:
+        return s3_client.head_object(Bucket=bucket_name, Key=object_name)['LastModified']
+    except Exception as e:
+        print(e)
+        logging.error(e)
+        return "Error"
 
 
 def lambda_handler(event, context):
@@ -42,6 +54,7 @@ def lambda_handler(event, context):
 
     s3_path = os.getenv('prefix', '') + service + "/" + event['queryStringParameters']['file']
     url = create_presigned_url(os.environ['BUCKET'], s3_path, os.environ['EXPIRATION'])
+    last_modified = get_last_modified(os.environ['BUCKET'], s3_path)
 
     return {
         "statusCode": 200,
@@ -49,6 +62,7 @@ def lambda_handler(event, context):
             "Content-Type": "application/json"
         },
         "body": json.dumps({
-            "url": url
+            "url": url,
+            "last_modified": last_modified.isoformat()
         })
     }
