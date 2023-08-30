@@ -63,6 +63,6 @@ def lambda_handler(event, context):
         },
         "body": json.dumps({
             "url": url,
-            "last_modified": last_modified.isoformat()
+            "last_modified": last_modified.timestamp()
         })
     }
