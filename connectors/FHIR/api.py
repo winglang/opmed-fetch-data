@@ -48,8 +48,10 @@ def create_block(block, blocks_main_surgeon_dict):
         end=block.end,
         resourceId=block['extension'][0].valueReference.id,
         title=block.id,
-        doctor_name=blocks_main_surgeon_dict[block.id]['name'],
-        doctor_id=blocks_main_surgeon_dict[block.id]['id']
+        doctor_name=blocks_main_surgeon_dict[block.id]['surgeon'],
+        doctor_id=blocks_main_surgeon_dict[block.id]['id'],
+        nurse_name=blocks_main_surgeon_dict[block.id]['nurses'],
+        anesthetist_name=blocks_main_surgeon_dict[block.id]['anesthetist'],
     )
 
 
@@ -63,6 +65,10 @@ def get_headers():
         "Content-Type": "application/fhir+json;charset=utf-8"
     }
     return headers
+
+
+def zip_names_and_ids(practitioners):
+    return ','.join([f'{practitioner.actor.id} - {practitioner.actor.display}' for practitioner in practitioners])
 
 
 def get_data(url, data, headers):
@@ -79,7 +85,10 @@ def get_data(url, data, headers):
 
     blocks_main_surgeon_dict = {appointment.slot[0].id: {
         'id': appointment['participant'][2].actor.id,
-        'name': appointment['participant'][2].actor.display
+        'surgeon': appointment['participant'][2].actor.display,
+        'nurses': zip_names_and_ids(appointment['participant'][3:5]),
+        'anesthetist': zip_names_and_ids([appointment['participant'][5]]) if len(
+            appointment['participant']) > 5 else None
     } for appointment in appointments}
 
     blocks = {block.id: create_block(block, blocks_main_surgeon_dict) for block in slots}
