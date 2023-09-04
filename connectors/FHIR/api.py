@@ -12,7 +12,8 @@ def create_surgery(appointment, patients_dict, blocks):
     patients_birth_date = patients_dict[appointment['participant'][1].actor.id].birthDate
     if not appointment.slot[0].id in blocks:
         return
-    room_id = blocks[appointment.slot[0].id].resourceId
+    parent_block = blocks[appointment.slot[0].id]
+    room_id = parent_block.resourceId
     return OperationModelFetched(
         id=appointment.id,
         start=appointment.start,
@@ -37,7 +38,7 @@ def create_surgery(appointment, patients_dict, blocks):
                 )
             ]
         ),
-        anesthesia=''
+        anesthesia='y' if parent_block.anesthetist_name else 'n'
     )
 
 
