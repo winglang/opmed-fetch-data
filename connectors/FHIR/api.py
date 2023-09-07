@@ -49,10 +49,10 @@ def create_block(block, blocks_main_surgeon_dict):
         end=block.end,
         resourceId=block['extension'][0].valueReference.id,
         title=block.id,
-        doctor_name=blocks_main_surgeon_dict[block.id]['surgeon'],
-        doctor_id=blocks_main_surgeon_dict[block.id]['id'],
-        nurse_name=blocks_main_surgeon_dict[block.id]['nurses'],
-        anesthetist_name=blocks_main_surgeon_dict[block.id]['anesthetist'],
+        doctor_name=blocks_main_surgeon_dict.get(block.id, {}).get('surgeon', 'placeholder'),
+        doctor_id=blocks_main_surgeon_dict.get(block.id, {}).get('id', '123456789'),
+        nurse_name=blocks_main_surgeon_dict.get(block.id, {}).get('nurses', None),
+        anesthetist_name=blocks_main_surgeon_dict.get(block.id, {}).get('anesthetist', None)
     )
 
 
