@@ -27,7 +27,7 @@ def get_last_modified(bucket_name, object_name):
     s3_client = boto3.client('s3', region_name=os.environ['REGION'],
                              config=boto3.session.Config(signature_version='s3v4', ))
     try:
-        return s3_client.head_object(Bucket=bucket_name, Key=object_name)['LastModified']
+        return s3_client.head_object(Bucket=bucket_name, Key=object_name)['LastModified'].timestamp() * 1e3
     except Exception as e:
         print(e)
         logging.error(e)
@@ -63,6 +63,6 @@ def lambda_handler(event, context):
         },
         "body": json.dumps({
             "url": url,
-            "last_modified": last_modified.isoformat()
+            "last_modified": last_modified
         })
     }

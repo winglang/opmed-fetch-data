@@ -12,7 +12,8 @@ def create_surgery(appointment, patients_dict, blocks):
     patients_birth_date = patients_dict[appointment['participant'][1].actor.id].birthDate
     if not appointment.slot[0].id in blocks:
         return
-    room_id = blocks[appointment.slot[0].id].resourceId
+    parent_block = blocks[appointment.slot[0].id]
+    room_id = parent_block.resourceId
     return OperationModelFetched(
         id=appointment.id,
         start=appointment.start,
@@ -37,7 +38,7 @@ def create_surgery(appointment, patients_dict, blocks):
                 )
             ]
         ),
-        anesthesia=''
+        anesthesia='y' if parent_block.anesthetist_name else 'n'
     )
 
 
@@ -48,8 +49,10 @@ def create_block(block, blocks_main_surgeon_dict):
         end=block.end,
         resourceId=block['extension'][0].valueReference.id,
         title=block.id,
-        doctor_name=blocks_main_surgeon_dict[block.id]['name'],
-        doctor_id=blocks_main_surgeon_dict[block.id]['id']
+        doctor_name=blocks_main_surgeon_dict.get(block.id, {}).get('surgeon', 'placeholder'),
+        doctor_id=blocks_main_surgeon_dict.get(block.id, {}).get('id', '123456789'),
+        nurse_name=blocks_main_surgeon_dict.get(block.id, {}).get('nurses', None),
+        anesthetist_name=blocks_main_surgeon_dict.get(block.id, {}).get('anesthetist', None)
     )
 
 
@@ -63,6 +66,10 @@ def get_headers():
         "Content-Type": "application/fhir+json;charset=utf-8"
     }
     return headers
+
+
+def zip_names_and_ids(practitioners):
+    return ','.join([f'{practitioner.actor.id} - {practitioner.actor.display}' for practitioner in practitioners])
 
 
 def get_data(url, data, headers):
@@ -79,7 +86,10 @@ def get_data(url, data, headers):
 
     blocks_main_surgeon_dict = {appointment.slot[0].id: {
         'id': appointment['participant'][2].actor.id,
-        'name': appointment['participant'][2].actor.display
+        'surgeon': appointment['participant'][2].actor.display,
+        'nurses': zip_names_and_ids(appointment['participant'][3:5]),
+        'anesthetist': zip_names_and_ids([appointment['participant'][5]]) if len(
+            appointment['participant']) > 5 else None
     } for appointment in appointments}
 
     blocks = {block.id: create_block(block, blocks_main_surgeon_dict) for block in slots}
