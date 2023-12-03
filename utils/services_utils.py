@@ -9,6 +9,7 @@ DOMAIN_TO_USER_GROUPS = {
     'planner.greatmix.ai': {"hmc-users"},
     'demo.greatmix.ai': {"demo-users"},
     'fhir.greatmix.ai': {"fhir-users"},
+    'mayo.opmed.ai': {"fhir-users"},
     'umh-dev.greatmix.ai': {"umh-users"},
     'umh.greatmix.ai': {"umh-users"}
 }
