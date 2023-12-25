@@ -60,10 +60,11 @@ def get_url():
     return 'http://ec2-23-22-99-103.compute-1.amazonaws.com:80/fhir/'
 
 
-def get_headers():
+def get_headers(event):
     headers = {
         "source": 'mock',
-        "Content-Type": "application/fhir+json;charset=utf-8"
+        "Content-Type": "application/fhir+json;charset=utf-8",
+        "gmix_serviceid": event['headers'].get('gmix_serviceid')
     }
     return headers
 
@@ -74,7 +75,8 @@ def zip_names_and_ids(practitioners):
 
 def get_data(url, data, headers):
     client = SyncFHIRClient(
-        url
+        url,
+        extra_headers=headers
     )
 
     appointments = client.resources("Appointment").search(date__ge=data['start'], date__lt=data['end'], status="booked",
