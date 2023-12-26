@@ -61,7 +61,7 @@ def lambda_handler(event, context):
         return handle_error_response(service)
 
     url = get_url()
-    headers = get_headers()
+    headers = get_headers(event)
 
     records_array = get_data(url, data, headers)
     if records_array is None:
