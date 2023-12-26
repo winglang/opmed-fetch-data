@@ -4,7 +4,8 @@ from enum import Enum
 from urllib.parse import urlparse
 
 DOMAIN_TO_USER_GROUPS = {
-    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
+    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users", "fhir-users10", "fhir-users20", "fhir-users30",
+                             "fhir-users40"},
     'planners.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
     'planner.greatmix.ai': {"hmc-users"},
     'demo.greatmix.ai': {"demo-users"},

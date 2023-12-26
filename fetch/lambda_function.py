@@ -25,6 +25,8 @@ def lambda_handler(event, context):
 
     # Unit test only!
     service = get_service(event)
+    if service.startswith(Service.FHIR.value):
+        service = Service.FHIR.value
 
     print("event: {}".format(event))
     if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]:
