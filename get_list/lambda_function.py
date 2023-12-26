@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from datetime import datetime
 
 import boto3
@@ -35,7 +35,8 @@ def lambda_handler(event, context):
     print(f'username: {username}')
 
     service = get_service(event)
-    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value, Service.DEMO.value]:
+    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
+                       Service.DEMO.value] and not service.startswith(Service.FHIR.value):
         return handle_error_response(service)
 
     objects_list = get_list_by_service(service)

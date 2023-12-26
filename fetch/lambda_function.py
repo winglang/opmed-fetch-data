@@ -25,8 +25,6 @@ def lambda_handler(event, context):
 
     # Unit test only!
     service = get_service(event)
-    if service.startswith(Service.FHIR.value):
-        service = Service.FHIR.value
 
     print("event: {}".format(event))
     if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]:
@@ -55,7 +53,7 @@ def lambda_handler(event, context):
 
     if service == Service.HMC.value:
         from connectors.HMC.fetch import get_url, get_headers, get_data
-    elif service == Service.FHIR.value:
+    elif service == Service.FHIR.value or service.startswith(Service.FHIR.value):
         from connectors.FHIR.api import get_url, get_headers, get_data
     elif service == Service.MOCK.value:
         from connectors.MOCK.fetch import get_url, get_headers, get_data

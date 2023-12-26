@@ -32,7 +32,7 @@ def lambda_handler(event, context):
         if "save" in event["queryStringParameters"]:
             save_to_blob = event["queryStringParameters"]['save']
 
-    if service == Service.FHIR.value:
+    if service == Service.FHIR.value or service.startswith(Service.FHIR.value):
         from connectors.FHIR.api import get_url, get_headers, update_data
 
     else:
