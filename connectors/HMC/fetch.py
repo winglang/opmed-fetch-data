@@ -19,8 +19,7 @@ def get_headers(event):
         "accept-charset": "utf-8",
         "authorization": os.environ['AUTHORIZATION'],
         "cache-control": "no-cache",
-        "content-type": "application/json",
-        "gmix_serviceid": event['headers'].get('gmix_serviceid')
+        "content-type": "application/json"
     }
     return headers
 
