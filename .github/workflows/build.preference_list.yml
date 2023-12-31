@@ -1,0 +1,53 @@
+name: Upload Lambda
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - fetch/**
+      - utils/**
+      - connectors/**
+      - .github/workflows/build.preference_list.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set branch
+      id: tags
+      run: |
+        if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
+          echo "function=preference-list" >> $GITHUB_OUTPUT
+        elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
+          echo "function=preference-list-dev" >> $GITHUB_OUTPUT
+        else
+          echo "Branch not supported"
+          exit 1
+        fi
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - run: pip install -r requirements.txt
+    - name: zip lambda
+      run: zip -r ${{ steps.tags.outputs.function }}.zip fetch utils connectors
+    - name: Deploy to S3
+      uses: hkusu/s3-upload-action@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        aws-bucket: greatmix-tf
+        file-path: ${{ steps.tags.outputs.function }}.zip
+        destination-dir: /
+        bucket-root: /
+    - name: Deploy AWS Lambda function
+      uses: yvesgurcan/deploy-lambda-function@v0.0.5
+      with:
+        package: ${{ steps.tags.outputs.function }}.zip
+        function-name: ${{ steps.tags.outputs.function }}
+        AWS_REGION: us-east-1
+        AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
