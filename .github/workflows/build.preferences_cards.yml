@@ -6,10 +6,10 @@ on:
       - main
       - develop
     paths:
-      - fetch/**
+      - preferences_cards/**
       - utils/**
       - connectors/**
-      - .github/workflows/build.preference_crud.yml
+      - .github/workflows/build.preferences_cards.yml
 
 jobs:
   deploy:
@@ -19,9 +19,9 @@ jobs:
       id: tags
       run: |
         if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
-          echo "function=preference-crud" >> $GITHUB_OUTPUT
+          echo "function=preference" >> $GITHUB_OUTPUT
         elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
-          echo "function=preference-crud-dev" >> $GITHUB_OUTPUT
+          echo "function=preference-dev" >> $GITHUB_OUTPUT
         else
           echo "Branch not supported"
           exit 1
@@ -32,7 +32,7 @@ jobs:
         python-version: '3.10'
     - run: pip install -r requirements.txt
     - name: zip lambda
-      run: zip -r ${{ steps.tags.outputs.function }}.zip fetch utils connectors
+      run: zip -r ${{ steps.tags.outputs.function }}.zip preferences_cards utils connectors
     - name: Deploy to S3
       uses: hkusu/s3-upload-action@v2
       with:
