@@ -54,11 +54,7 @@ def lambda_handler(event, context):
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                'body': json.dumps({
-                    'HTTP Method': http_method,
-                    'Procedure': procedure,
-                    'Surgeon': surgeon
-                })
+                'body': json.dumps(result)
             }
         else:
             return {
@@ -68,7 +64,6 @@ def lambda_handler(event, context):
                 },
                 'body': json.dumps({
                     'message': 'Operation Failed',
-                    'path': path
                 })
             }
 
