@@ -1,4 +1,4 @@
-name: Upload Lambda
+name: Upload Preferences Lambda
 
 on:
   push:
