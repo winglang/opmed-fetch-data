@@ -43,7 +43,7 @@ def lambda_handler(event, context):
     # For other cases, extracting procedure and surgeon from the path and perform "rest" operations.
     elif path.startswith('/api/v1/preferences/'):
         # Splitting the path to get the individual components
-        _, _, _, procedure, surgeon = path.split('/')
+        _, _, _, _, procedure, surgeon = path.split('/')
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
             data_object = json.loads(event['body'])

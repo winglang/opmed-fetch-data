@@ -10,8 +10,8 @@ class DynamoDBAccessor:
         try:
             response = self.table.get_item(
                 Key={
-                    'tenantId': tenant_id,
-                    'dataId': data_id
+                    'tenant_id': tenant_id,
+                    'data_id': data_id
                 }
             )
             return response.get('Item')
@@ -22,8 +22,8 @@ class DynamoDBAccessor:
     def put_item(self, tenant_id, data_id, data):
         try:
             item = {
-                'tenantId': tenant_id,
-                'dataId': data_id,
+                'tenant_id': tenant_id,
+                'data_id': data_id,
                 'data': data  # Assuming the entire JSON object is stored under the 'data' attribute
             }
             self.table.put_item(Item=item)
@@ -36,8 +36,8 @@ class DynamoDBAccessor:
         try:
             response = self.table.delete_item(
                 Key={
-                    'tenantId': tenant_id,
-                    'dataId': data_id
+                    'tenant_id': tenant_id,
+                    'data_id': data_id
                 }
             )
             return response
@@ -48,7 +48,7 @@ class DynamoDBAccessor:
     def list_items_by_tenant(self, tenant_id):
         try:
             response = self.table.query(
-                KeyConditionExpression=boto3.dynamodb.conditions.Key('tenantId').eq(tenant_id)
+                KeyConditionExpression=boto3.dynamodb.conditions.Key('tenant_id').eq(tenant_id)
             )
             return response.get('Items', [])
         except Exception as e:
@@ -58,10 +58,10 @@ class DynamoDBAccessor:
     def list_data_ids_by_tenant(self, tenant_id):
         try:
             response = self.table.query(
-                KeyConditionExpression=boto3.dynamodb.conditions.Key('tenantId').eq(tenant_id),
-                ProjectionExpression='dataId'
+                KeyConditionExpression=boto3.dynamodb.conditions.Key('tenant_id').eq(tenant_id),
+                ProjectionExpression='data_id'
             )
-            return [item['dataId'] for item in response.get('Items', []) if 'dataId' in item]
-        except ClientError as e:
+            return [item['data_id'] for item in response.get('Items', []) if 'data_id' in item]
+        except Exception as e:
             print(f"Error querying DynamoDB: {e}")
             return []
