@@ -118,7 +118,11 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
     # Handle different HTTP methods
     if http_method == 'GET':
         # Retrieve an item
-        return db_accessor.get_item(tenant_id, data_id)
+        item = db_accessor.get_item(tenant_id, data_id)
+        if item is not None:
+            return item['data']
+        else:
+            return None
 
     elif http_method == 'POST':
         # Create a new item
