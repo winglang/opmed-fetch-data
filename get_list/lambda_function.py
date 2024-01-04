@@ -7,7 +7,7 @@ import boto3
 from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 
 
-def get_list_by_service(service):
+def get_list_by_service(prefix):
     if os.getenv('env', None) == 'local':
         s3_client = boto3.client('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                                  aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
@@ -16,11 +16,11 @@ def get_list_by_service(service):
         s3_client = boto3.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
     paginator = s3_client.get_paginator('list_objects_v2')
-    page_iterator = paginator.paginate(Bucket=os.getenv('BUCKET'), Prefix=f'lambda/{service}/')
+    page_iterator = paginator.paginate(Bucket=os.getenv('BUCKET'), Prefix=prefix)
 
     object_list = [object_file for page in page_iterator for object_file in page['Contents']]
     for object_file in object_list:
-        object_file['Key'] = object_file['Key'].replace(f'lambda/{service}/', '')
+        object_file['Key'] = object_file['Key'].replace(prefix, '')
     return object_list
 
 
@@ -39,7 +39,11 @@ def lambda_handler(event, context):
                        Service.DEMO.value] and not service.startswith(Service.FHIR.value):
         return handle_error_response(service)
 
-    objects_list = get_list_by_service(service)
+    method = event['path'].rsplit('/', 1)[-1]
+    if method == 'get-list-cache':
+        method = 'alternative_plans'
+
+    objects_list = get_list_by_service(f'lambda/{service}/{method}/')
 
     class DateEncoder(json.JSONEncoder):
         def default(self, obj):
