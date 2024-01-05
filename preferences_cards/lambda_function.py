@@ -28,8 +28,8 @@ def lambda_handler(event, context):
     http_method = event['requestContext']['http']['method']
     path = event['requestContext']['http']['path']
 
-    # Check if the method is GET and the path is /api/v1/preferences - list all objects.
-    if http_method == 'GET' and path == '/api/v1/preferences':
+    # Check if the method is GET and the path is /api/v1/preference-cards - list all objects.
+    if http_method == 'GET' and path == '/api/v1/preference-cards':  # Note: without "/"
         parsed_data_ids = get_parsed_data_ids_for_tenant(service)
         print("Parsed Data IDs:", parsed_data_ids)
         return {
@@ -41,7 +41,7 @@ def lambda_handler(event, context):
         }
 
     # For other cases, extracting procedure and surgeon from the path and perform "rest" operations.
-    elif path.startswith('/api/v1/preferences/'):
+    elif path.startswith('/api/v1/preference-cards/'):
         # Splitting the path to get the individual components
         _, _, _, _, procedure, surgeon = path.split('/')
         data_object = None
