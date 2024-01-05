@@ -19,9 +19,9 @@ jobs:
       id: tags
       run: |
         if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
-          echo "function=preference_cards" >> $GITHUB_OUTPUT
+          echo "function=preference-cards" >> $GITHUB_OUTPUT
         elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
-          echo "function=preference_cards-dev" >> $GITHUB_OUTPUT
+          echo "function=preference-cards-dev" >> $GITHUB_OUTPUT
         else
           echo "Branch not supported"
           exit 1
