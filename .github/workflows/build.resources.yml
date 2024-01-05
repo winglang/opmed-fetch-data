@@ -1,4 +1,4 @@
-name: Upload Procedures Lambda
+name: Upload Resources Lambda
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - main
       - develop
     paths:
-      - procedures/**
+      - resources/**
       - utils/**
       - connectors/**
-      - .github/workflows/build.procedures.yml
+      - .github/workflows/build.resources.yml
 
 jobs:
   deploy:
@@ -19,9 +19,9 @@ jobs:
       id: tags
       run: |
         if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
-          echo "function=procedures" >> $GITHUB_OUTPUT
+          echo "function=resources" >> $GITHUB_OUTPUT
         elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
-          echo "function=procedures-dev" >> $GITHUB_OUTPUT
+          echo "function=resources-dev" >> $GITHUB_OUTPUT
         else
           echo "Branch not supported"
           exit 1
@@ -32,7 +32,7 @@ jobs:
         python-version: '3.10'
     - run: pip install -r requirements.txt
     - name: zip lambda
-      run: zip -r ${{ steps.tags.outputs.function }}.zip procedures utils connectors
+      run: zip -r ${{ steps.tags.outputs.function }}.zip resources utils connectors
     - name: Deploy to S3
       uses: hkusu/s3-upload-action@v2
       with:
