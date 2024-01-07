@@ -41,7 +41,7 @@ def lambda_handler(event, context):
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'get-list-cache':
-        method = 'alternative_plans'
+        method = 'alternative-plans'
 
     objects_list = get_list_by_service(f'lambda/{service}/{method}/')
 
