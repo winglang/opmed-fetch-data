@@ -72,12 +72,16 @@ def get_user_groups(event):
 
 
 def handle_error_response(error_response):
+    return create_error_response(error_response['statusCode'], error_response['error'])
+
+
+def create_error_response(status_code, error_msg):
     return {
-        "statusCode": error_response['statusCode'],
+        "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": json.dumps({"error": error_response['error']})
+        "body": json.dumps({"error": error_msg})
     }
 
 
