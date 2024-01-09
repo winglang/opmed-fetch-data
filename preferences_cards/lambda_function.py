@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
@@ -115,6 +116,13 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
 
     # Initialize the DynamoDB accessor
     db_accessor = DynamoDBAccessor(os.environ['DYNAMODB_TABLE_NAME'])
+
+    # Add 'lastUpdated' to your data
+    if data is not None:
+        # Get current time as unix time in milliseconds
+        now = datetime.datetime.now()
+        timestamp = int(now.timestamp() * 1000)
+        data['lastUpdated'] = timestamp
 
     # Handle different HTTP methods
     if http_method == 'GET':
