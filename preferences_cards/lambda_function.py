@@ -56,7 +56,7 @@ def lambda_handler(event, context):
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                'body': json.dumps(result, default=decimal_default)
+                'body': json.dumps(result, default=dynamodb_decimal_default_encoder)
             }
         else:
             return {
@@ -149,8 +149,8 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
         raise ValueError(f"Unsupported HTTP method: {http_method}")
 
 
-# Custom encoder function
-def decimal_default(obj):
+# Custom encoder function - duplicate code
+def dynamodb_decimal_default_encoder(obj):
     if isinstance(obj, Decimal):
         return float(obj)  # or use str(obj) if you want to preserve exactness
     raise TypeError
