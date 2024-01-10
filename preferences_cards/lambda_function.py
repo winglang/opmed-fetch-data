@@ -5,7 +5,8 @@ from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
 from utils.preferences_card_pkey import PreferencesCardsPKey
-from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
+from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username, \
+    create_error_response
 
 
 def lambda_handler(event, context):
@@ -49,38 +50,26 @@ def lambda_handler(event, context):
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
             data_object = json.loads(event['body'])
-        result = handle_rest_request(http_method, service, procedure, surgeon, data_object)
-        if result:
-            return {
-                'statusCode': 200,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                'body': json.dumps(result, default=dynamodb_decimal_default_encoder)
-            }
-        else:
-            return {
-                'statusCode': 500,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                'body': json.dumps({
-                    'message': 'Operation Failed',
-                })
-            }
+        try:
+            result = handle_rest_request(http_method, service, procedure, surgeon, data_object)
+            if result:
+                return {
+                    'statusCode': 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    'body': json.dumps(result, default=dynamodb_decimal_default_encoder)
+                }
+            else:
+                return create_error_response(500, 'Operation failed')
+        except ValueError as e:
+            print(f"Caught an error: {e}")
+            return create_error_response(500, 'Invalid parameter')
 
     # Default response for other cases
     else:
-        return {
-            'statusCode': 400,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            'body': json.dumps({
-                'message': 'Invalid request',
-                'path': path
-            })
-        }
+        print(path)
+        return create_error_response(400, 'Invalid request')
 
 
 def get_parsed_data_ids_for_tenant(tenant_id):
@@ -135,6 +124,10 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
 
     elif http_method == 'POST':
         # Create a new item
+        # check that object does not exist before adding.
+        item = db_accessor.get_item(tenant_id, data_id)
+        if item is not None:
+            raise ValueError(f"Resource already exist: {data_id}")
         return db_accessor.put_item(tenant_id, data_id, data)
 
     elif http_method == 'PUT':
