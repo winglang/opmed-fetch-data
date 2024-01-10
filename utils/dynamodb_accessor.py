@@ -50,7 +50,8 @@ class DynamoDBAccessor:
             response = self.table.query(
                 KeyConditionExpression=boto3.dynamodb.conditions.Key('tenant_id').eq(tenant_id)
             )
-            return response.get('Items', [])
+            data_array = [item['data'] for item in response.get('Items', [])]
+            return data_array
         except Exception as e:
             print(f"Error querying DynamoDB: {e}")
             return []

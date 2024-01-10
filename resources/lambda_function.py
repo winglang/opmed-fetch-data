@@ -71,17 +71,21 @@ def lambda_handler(event, context):
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
             data_object = json.loads(event['body'])
-        result = handle_rest_request(http_method, service, resource_category_id, resource_id, data_object)
-        if result:
-            return {
-                'statusCode': 200,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                'body': json.dumps(result, default=dynamodb_decimal_default_encoder)
-            }
-        else:
-            return create_error_response(500, 'Operation failed')
+        try:
+            result = handle_rest_request(http_method, service, resource_category_id, resource_id, data_object)
+            if result:
+                return {
+                    'statusCode': 200,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    'body': json.dumps(result, default=dynamodb_decimal_default_encoder)
+                }
+            else:
+                return create_error_response(500, 'Operation failed')
+        except ValueError as e:
+            print(f"Caught an error: {e}")
+            return create_error_response(500, 'Invalid parameter')
 
 
 def get_table_name(category_id):
