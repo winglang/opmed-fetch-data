@@ -63,7 +63,7 @@ def lambda_handler(event, context):
             "headers": {
                 "Content-Type": "application/json"
             },
-            'body': json.dumps(all_data)
+            'body': json.dumps(all_data, default=dynamodb_decimal_default_encoder)
         }
 
     else:  # For other cases, perform "rest" operations with teh resource id.
