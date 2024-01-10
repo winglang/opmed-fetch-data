@@ -31,16 +31,8 @@ def lambda_handler(event, context):
     path = event['requestContext']['http']['path']
 
     if not path.startswith('/api/v1/resources'):
-        return {
-            'statusCode': 400,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            'body': json.dumps({
-                'message': 'Invalid request',
-                'path': path
-            })
-        }
+        print("Invalid path.")
+        return create_error_response(400, 'Invalid request')
 
     # get the resource category.
     path_splits = path.split('/')
@@ -89,7 +81,7 @@ def lambda_handler(event, context):
 
 
 def get_table_name(category_id):
-    table_name = os.environ[category_id]
+    table_name = os.getenv(category_id)
     if table_name is None or table_name == "":
         raise ValueError("Missing category. " + str(category_id))
     return table_name
@@ -156,7 +148,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         raise ValueError(f"Unsupported HTTP method: {http_method}")
 
 
-# Custom encoder function - duplicate code
+# Custom encoder function - TODO: Move to utils to avoid duplicate code
 def dynamodb_decimal_default_encoder(obj):
     if isinstance(obj, Decimal):
         return float(obj)  # or use str(obj) if you want to preserve exactness
