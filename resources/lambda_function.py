@@ -3,6 +3,7 @@ import json
 import datetime
 from decimal import Decimal
 
+import hashlib
 from utils.dynamodb_accessor import DynamoDBAccessor
 from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username, \
     create_error_response
@@ -131,10 +132,20 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
     elif http_method == 'POST':
         # Create a new item
         # check that object does not exist before adding.
-        item = db_accessor.get_item(tenant_id, resource_id)
+        categories_with_hash_id = ["surgeons"]
+        slat = os.environ['HASH_ID_SALT']
+        internal_resource_id = generate_sha256_hash(resource_id,
+                                                    slat) if category_id in categories_with_hash_id else resource_id
+        item = db_accessor.get_item(tenant_id, internal_resource_id)
         if item is not None:
             raise ValueError(f"Resource already exist: {resource_id}")
-        return db_accessor.put_item(tenant_id, resource_id, data)
+        # store internal id. TODO: Transaction
+        ids_db_accessor = DynamoDBAccessor('internal_to_external_ids')
+        id_created = ids_db_accessor.put_item(tenant_id, internal_resource_id, resource_id)
+        if id_created is False:
+            raise ValueError(f"Fail to create internal id for external id. {internal_resource_id}")
+        data['id'] = internal_resource_id
+        return db_accessor.put_item(tenant_id, internal_resource_id, data)
 
     elif http_method == 'PUT':
         # Update an existing item
@@ -142,7 +153,11 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
 
     elif http_method == 'DELETE':
         # Delete an item
-        return db_accessor.delete_item(tenant_id, resource_id)
+        ids_db_accessor = DynamoDBAccessor('internal_to_external_ids')
+        id_deleted = ids_db_accessor.delete_item(tenant_id, resource_id)
+        if id_deleted is False:
+            raise ValueError(f"Fail to delete internal id for external id. {resource_id}")
+        return db_accessor.delete_item(tenant_id, resource_id) is not None
 
     else:
         raise ValueError(f"Unsupported HTTP method: {http_method}")
@@ -153,3 +168,11 @@ def dynamodb_decimal_default_encoder(obj):
     if isinstance(obj, Decimal):
         return float(obj)  # or use str(obj) if you want to preserve exactness
     raise TypeError
+
+
+def generate_sha256_hash(data, salt):
+    data_with_salt = data + salt
+    sha256_hash = hashlib.sha256()
+    sha256_hash.update(data_with_salt.encode())
+    hashed_string = sha256_hash.hexdigest()
+    return hashed_string
