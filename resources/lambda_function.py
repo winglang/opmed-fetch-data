@@ -58,7 +58,7 @@ def lambda_handler(event, context):
             'body': json.dumps(all_data, default=dynamodb_decimal_default_encoder)
         }
 
-    else:  # For other cases, perform "rest" operations with teh resource id.
+    else:  # For other cases, perform "rest" operations with the resource id.
         resource_id = path_splits[5]
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
