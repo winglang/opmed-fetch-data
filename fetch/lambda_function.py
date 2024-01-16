@@ -53,7 +53,7 @@ def lambda_handler(event, context):
 
     if service == Service.HMC.value:
         from connectors.HMC.fetch import get_url, get_headers, get_data
-    elif service == Service.FHIR.value or service.startswith(Service.FHIR.value):
+    elif service == Service.FHIR.value or service.startswith(Service.SANDBOX.value):
         from connectors.FHIR.api import get_url, get_headers, get_data
     elif service == Service.MOCK.value:
         from connectors.MOCK.fetch import get_url, get_headers, get_data

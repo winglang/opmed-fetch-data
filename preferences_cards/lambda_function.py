@@ -1,6 +1,6 @@
-import os
-import json
 import datetime
+import json
+import os
 from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
@@ -24,7 +24,7 @@ def lambda_handler(event, context):
 
     service = get_service(event)
     if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
-                       Service.DEMO.value] and not service.startswith(Service.FHIR.value):
+                       Service.DEMO.value] and not service.startswith(Service.SANDBOX.value):
         return handle_error_response(service)
 
     # Extracting HTTP method and path from the event

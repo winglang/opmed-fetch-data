@@ -1,4 +1,5 @@
 import json
+
 from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 
 
@@ -17,7 +18,7 @@ def lambda_handler(event, context):
 
     service = get_service(event)
     if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
-                       Service.DEMO.value] and not service.startswith(Service.FHIR.value):
+                       Service.DEMO.value] and not service.startswith(Service.SANDBOX.value):
         return handle_error_response(service)
 
     return {

@@ -50,7 +50,7 @@ def lambda_handler(event, context):
 
     service = get_service(event)
     if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
-                       Service.DEMO.value] and not service.startswith(Service.FHIR.value):
+                       Service.DEMO.value] and not service.startswith(Service.SANDBOX.value):
         return handle_error_response(service)
 
     s3_path = os.getenv('prefix', '') + service + "/" + event['queryStringParameters']['file']
