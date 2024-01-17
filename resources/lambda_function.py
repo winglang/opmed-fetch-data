@@ -140,7 +140,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         if item is not None:
             raise ValueError(f"Resource already exist: {resource_id}")
         # store internal id. TODO: Transaction
-        ids_db_accessor = DynamoDBAccessor('internal_to_external_ids')
+        ids_db_accessor = DynamoDBAccessor('internal-to-external-ids')
         id_created = ids_db_accessor.put_item(tenant_id, internal_resource_id, resource_id)
         if id_created is False:
             raise ValueError(f"Fail to create internal id for external id. {internal_resource_id}")
@@ -153,7 +153,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
 
     elif http_method == 'DELETE':
         # Delete an item
-        ids_db_accessor = DynamoDBAccessor('internal_to_external_ids')
+        ids_db_accessor = DynamoDBAccessor('internal-to-external-ids')
         id_deleted = ids_db_accessor.delete_item(tenant_id, resource_id)
         if id_deleted is False:
             raise ValueError(f"Fail to delete internal id for external id. {resource_id}")
