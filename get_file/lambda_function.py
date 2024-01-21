@@ -4,7 +4,7 @@ import os
 
 import boto3
 
-from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, valid_service
 
 
 def create_presigned_url(bucket_name, object_name, expiration=600):
@@ -49,7 +49,7 @@ def lambda_handler(event, context):
     if 'file' not in event['queryStringParameters']: return
 
     service = get_service(event)
-    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value, Service.DEMO.value]:
+    if not valid_service(service):
         return handle_error_response(service)
 
     s3_path = os.getenv('prefix', '') + service + "/" + event['queryStringParameters']['file']

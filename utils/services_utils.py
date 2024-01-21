@@ -4,12 +4,13 @@ from enum import Enum
 from urllib.parse import urlparse
 
 DOMAIN_TO_USER_GROUPS = {
-    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
+    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users", "opmed-sandbox-5-ORs", "opmed-sandbox-10-ORs",
+                             "opmed-sandbox-20-ORs", "opmed-sandbox-30-ORs", "opmed-sandbox-40-ORs", "mayo-users"},
     'planners.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
     'planner.greatmix.ai': {"hmc-users"},
     'demo.greatmix.ai': {"demo-users"},
     'fhir.greatmix.ai': {"fhir-users"},
-    'mayo.opmed.ai': {"fhir-users"},
+    'mayo.opmed.ai': {"mayo-users"},
     'umh-dev.greatmix.ai': {"umh-users"},
     'umh.greatmix.ai': {"umh-users"}
 }
@@ -18,8 +19,15 @@ DOMAIN_TO_USER_GROUPS = {
 class Service(Enum):
     HMC = "hmc-users"
     FHIR = "fhir-users"
+    MAYO = "mayo-users"
     MOCK = "mock-users"
     DEMO = "demo-users"
+    SANDBOX = "opmed-sandbox"
+
+
+def valid_service(service):
+    return service in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value, Service.MAYO.value,
+                       Service.DEMO.value] or service.startswith(Service.SANDBOX.value)
 
 
 def get_service_ids_from_cognito_jwt(jwt: dict) -> [str]:
@@ -71,12 +79,16 @@ def get_user_groups(event):
 
 
 def handle_error_response(error_response):
+    return create_error_response(error_response['statusCode'], error_response['error'])
+
+
+def create_error_response(status_code, error_msg):
     return {
-        "statusCode": error_response['statusCode'],
+        "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": json.dumps({"error": error_response['error']})
+        "body": json.dumps({"error": error_msg})
     }
 
 

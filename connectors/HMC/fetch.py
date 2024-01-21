@@ -13,7 +13,7 @@ def get_url():
     return '{}/api/external/fullcalendar_events_ajax'.format(os.environ['HAPROXY_PATH'])
 
 
-def get_headers():
+def get_headers(event):
     headers = {
         "Host": os.environ['HOST'],
         "accept-charset": "utf-8",

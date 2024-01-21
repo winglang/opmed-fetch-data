@@ -4,8 +4,8 @@ from datetime import datetime
 
 import boto3
 
-from utils.services_utils import get_service, Service, get_username, handle_error_response, lowercase_headers
 from utils.data_utils import CustomJSONEncoder
+from utils.services_utils import get_service, Service, get_username, handle_error_response, lowercase_headers
 
 
 def lambda_handler(event, context):
@@ -32,14 +32,14 @@ def lambda_handler(event, context):
         if "save" in event["queryStringParameters"]:
             save_to_blob = event["queryStringParameters"]['save']
 
-    if service == Service.FHIR.value:
+    if service == Service.FHIR.value or service.startswith(Service.SANDBOX.value):
         from connectors.FHIR.api import get_url, get_headers, update_data
 
     else:
         return handle_error_response(service)
 
     url = get_url()
-    headers = get_headers()
+    headers = get_headers(event)
 
     data = json.loads(event['body'])
     records_array = update_data(url, data, headers)

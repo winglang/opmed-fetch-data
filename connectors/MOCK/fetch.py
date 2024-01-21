@@ -5,7 +5,7 @@ def get_url():
     return 'dummy_url'
 
 
-def get_headers():
+def get_headers(event):
     headers = {
         "source": 'mock'
     }
