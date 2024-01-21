@@ -4,8 +4,8 @@ import os
 from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
-from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username, \
-    create_error_response
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
+    create_error_response, valid_service
 
 
 def lambda_handler(event, context):
@@ -22,8 +22,7 @@ def lambda_handler(event, context):
         print(key)
 
     service = get_service(event)
-    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
-                       Service.DEMO.value] and not service.startswith(Service.SANDBOX.value):
+    if not valid_service(service):
         return handle_error_response(service)
 
     # Extracting HTTP method and path from the event
