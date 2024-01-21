@@ -5,12 +5,12 @@ from urllib.parse import urlparse
 
 DOMAIN_TO_USER_GROUPS = {
     'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users", "opmed-sandbox-5-ORs", "opmed-sandbox-10-ORs",
-                             "opmed-sandbox-20-ORs", "opmed-sandbox-30-ORs", "opmed-sandbox-40-ORs"},
+                             "opmed-sandbox-20-ORs", "opmed-sandbox-30-ORs", "opmed-sandbox-40-ORs", "mayo-users"},
     'planners.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
     'planner.greatmix.ai': {"hmc-users"},
     'demo.greatmix.ai': {"demo-users"},
     'fhir.greatmix.ai': {"fhir-users"},
-    'mayo.opmed.ai': {"fhir-users"},
+    'mayo.opmed.ai': {"mayo-users"},
     'umh-dev.greatmix.ai': {"umh-users"},
     'umh.greatmix.ai': {"umh-users"}
 }
