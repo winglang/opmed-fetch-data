@@ -52,7 +52,7 @@ def lambda_handler(event, context):
     if not valid_service(service):
         return handle_error_response(service)
 
-    s3_path = os.getenv('prefix', '') + service + "/" + event['queryStringParameters']['file']
+    s3_path = os.getenv('prefix', '') + service + "/alternative-plans/" + event['queryStringParameters']['file']
     url = create_presigned_url(os.environ['BUCKET'], s3_path, os.environ['EXPIRATION'])
     last_modified = get_last_modified(os.environ['BUCKET'], s3_path)
 
