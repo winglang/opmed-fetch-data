@@ -114,7 +114,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
     # Initialize the DynamoDB accessor
     table_name = get_table_name(category_id)
     db_accessor = DynamoDBAccessor(table_name)
-
+    internal_to_external_ids_table = os.environ['internal_to_external_ids']
     # Add 'lastUpdated' to your data
     if data is not None:
         # Get current time as unix time in milliseconds
@@ -135,14 +135,14 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         # Create a new item
         # check that object does not exist before adding.
         categories_with_hash_id = ["surgeons"]
-        slat = os.environ['HASH_ID_SALT']
+        salt = os.environ['HASH_ID_SALT']
         internal_resource_id = generate_sha256_hash(resource_id,
-                                                    slat) if category_id in categories_with_hash_id else resource_id
+                                                    salt) if category_id in categories_with_hash_id else resource_id
         item = db_accessor.get_item(tenant_id, internal_resource_id)
         if item is not None:
             raise FileExistsError(f"Resource already exist: {internal_resource_id}")
         # store internal id. TODO: Transaction
-        ids_db_accessor = DynamoDBAccessor('internal-to-external-ids')
+        ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
         id_created = ids_db_accessor.put_item(tenant_id, internal_resource_id, resource_id)
         if id_created is False:
             raise ValueError(f"Fail to create internal id for external id. {internal_resource_id}")
@@ -155,7 +155,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
 
     elif http_method == 'DELETE':
         # Delete an item
-        ids_db_accessor = DynamoDBAccessor('internal-to-external-ids')
+        ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
         id_deleted = ids_db_accessor.delete_item(tenant_id, resource_id)
         if id_deleted is False:
             raise ValueError(f"Fail to delete internal id for external id. {resource_id}")
