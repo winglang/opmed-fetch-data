@@ -66,3 +66,14 @@ class DynamoDBAccessor:
         except Exception as e:
             print(f"Error querying DynamoDB: {e}")
             return []
+
+    def get_all_items_by_tenant(self, tenant_id):
+        try:
+            response = self.table.query(
+                KeyConditionExpression=boto3.dynamodb.conditions.Key('tenant_id').eq(tenant_id)
+            )
+            items_dict = {item['data_id']: item['data'] for item in response.get('Items', [])}
+            return items_dict
+        except Exception as e:
+            print(f"Error querying DynamoDB: {e}")
+            return {}

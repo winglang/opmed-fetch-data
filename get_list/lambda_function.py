@@ -4,7 +4,7 @@ from datetime import datetime
 
 import boto3
 
-from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, valid_service
 
 
 def get_list_by_service(prefix):
@@ -35,8 +35,7 @@ def lambda_handler(event, context):
     print(f'username: {username}')
 
     service = get_service(event)
-    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
-                       Service.DEMO.value] and not service.startswith(Service.FHIR.value):
+    if not valid_service(service):
         return handle_error_response(service)
 
     method = event['path'].rsplit('/', 1)[-1]

@@ -1,12 +1,12 @@
-import os
-import json
 import datetime
+import json
+import os
 from decimal import Decimal
 
 import hashlib
 from utils.dynamodb_accessor import DynamoDBAccessor
-from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username, \
-    create_error_response
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
+    create_error_response, valid_service
 
 
 def lambda_handler(event, context):
@@ -23,8 +23,7 @@ def lambda_handler(event, context):
         print(key)
 
     service = get_service(event)
-    if service not in [Service.HMC.value, Service.FHIR.value, Service.MOCK.value,
-                       Service.DEMO.value] and not service.startswith(Service.FHIR.value):
+    if not valid_service(service):
         return handle_error_response(service)
 
     # Extracting HTTP method and path from the event
@@ -59,7 +58,7 @@ def lambda_handler(event, context):
             'body': json.dumps(all_data, default=dynamodb_decimal_default_encoder)
         }
 
-    else:  # For other cases, perform "rest" operations with teh resource id.
+    else:  # For other cases, perform "rest" operations with the resource id.
         resource_id = path_splits[5]
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
@@ -79,6 +78,9 @@ def lambda_handler(event, context):
         except ValueError as e:
             print(f"Caught an error: {e}")
             return create_error_response(500, 'Invalid parameter')
+        except FileExistsError as e2:
+            print(f"Caught an error: {e2}")
+            return create_error_response(409, 'Already exists')
 
 
 def get_table_name(category_id):
@@ -138,7 +140,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
                                                     slat) if category_id in categories_with_hash_id else resource_id
         item = db_accessor.get_item(tenant_id, internal_resource_id)
         if item is not None:
-            raise ValueError(f"Resource already exist: {resource_id}")
+            raise FileExistsError(f"Resource already exist: {internal_resource_id}")
         # store internal id. TODO: Transaction
         ids_db_accessor = DynamoDBAccessor('internal-to-external-ids')
         id_created = ids_db_accessor.put_item(tenant_id, internal_resource_id, resource_id)

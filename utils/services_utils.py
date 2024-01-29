@@ -4,23 +4,32 @@ from enum import Enum
 from urllib.parse import urlparse
 
 DOMAIN_TO_USER_GROUPS = {
-    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users", "fhir-users10", "fhir-users20", "fhir-users30",
-                             "fhir-users40"},
+    'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users", "opmed-sandbox-5-ORs", "opmed-sandbox-10-ORs",
+                             "opmed-sandbox-20-ORs", "opmed-sandbox-30-ORs", "opmed-sandbox-40-ORs", "mayo-users"},
     'planners.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
     'planner.greatmix.ai': {"hmc-users"},
     'demo.greatmix.ai': {"demo-users"},
     'fhir.greatmix.ai': {"fhir-users"},
-    'mayo.opmed.ai': {"fhir-users"},
+    'mayo.opmed.ai': {"mayo-users"},
+    'nbi.opmed.ai': {"nbi-users"},
     'umh-dev.greatmix.ai': {"umh-users"},
     'umh.greatmix.ai': {"umh-users"}
+
 }
 
 
 class Service(Enum):
     HMC = "hmc-users"
     FHIR = "fhir-users"
+    MAYO = "mayo-users"
+    NBI = "nbi-users"
     MOCK = "mock-users"
     DEMO = "demo-users"
+    SANDBOX = "opmed-sandbox"
+
+
+def valid_service(service):
+    return service in service in [x.value for x in Service] or service.startswith(Service.SANDBOX.value)
 
 
 def get_service_ids_from_cognito_jwt(jwt: dict) -> [str]:
