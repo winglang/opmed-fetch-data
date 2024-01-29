@@ -77,6 +77,9 @@ def lambda_handler(event, context):
         except ValueError as e:
             print(f"Caught an error: {e}")
             return create_error_response(500, 'Invalid parameter')
+        except FileExistsError as e2:
+            print(f"Caught an error: {e2}")
+            return create_error_response(409, 'Already exists')
 
 
 def get_table_name(category_id):
@@ -132,7 +135,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         # check that object does not exist before adding.
         item = db_accessor.get_item(tenant_id, resource_id)
         if item is not None:
-            raise ValueError(f"Resource already exist: {resource_id}")
+            raise FileExistsError(f"Resource already exist: {resource_id}")
         return db_accessor.put_item(tenant_id, resource_id, data)
 
     elif http_method == 'PUT':
