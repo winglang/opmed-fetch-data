@@ -32,7 +32,7 @@ class Service(Enum):
 def valid_service(service):
     if type(service) is not str:
         return False
-    return service in service in [x.value for x in Service] or service.startswith(Service.SANDBOX.value)
+    return service in [x.value for x in Service] or service.startswith(Service.SANDBOX.value)
 
 
 def get_service_ids_from_cognito_jwt(jwt: dict) -> [str]:
