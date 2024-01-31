@@ -5,7 +5,8 @@ from urllib.parse import urlparse
 
 DOMAIN_TO_USER_GROUPS = {
     'plannerd.greatmix.ai': {"hmc-users", "fhir-users", "umh-users", "opmed-sandbox-5-ORs", "opmed-sandbox-10-ORs",
-                             "opmed-sandbox-20-ORs", "opmed-sandbox-30-ORs", "opmed-sandbox-40-ORs", "mayo-users"},
+                             "opmed-sandbox-20-ORs", "opmed-sandbox-30-ORs", "opmed-sandbox-40-ORs", "mayo-users",
+                             "nbi-users"},
     'planners.greatmix.ai': {"hmc-users", "fhir-users", "umh-users"},
     'planner.greatmix.ai': {"hmc-users"},
     'demo.greatmix.ai': {"demo-users"},
@@ -29,6 +30,8 @@ class Service(Enum):
 
 
 def valid_service(service):
+    if type(service) is not str:
+        return False
     return service in service in [x.value for x in Service] or service.startswith(Service.SANDBOX.value)
 
 
