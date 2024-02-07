@@ -1,9 +1,20 @@
+import os
+
 import boto3
 
 
 class DynamoDBAccessor:
-    def __init__(self, table_name):
-        self.dynamodb = boto3.resource('dynamodb')
+
+    def __init__(self, table_name, aws_access_key_id=None, aws_secret_access_key=None):
+        if aws_access_key_id and aws_secret_access_key:
+            self.dynamodb = boto3.resource(
+                'dynamodb',
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                region_name=os.environ['REGION']
+            )
+        else:
+            self.dynamodb = boto3.resource('dynamodb')
         self.table = self.dynamodb.Table(table_name)
 
     def get_item(self, tenant_id, data_id):
