@@ -3,8 +3,8 @@ import json
 import os
 from decimal import Decimal
 
-import hashlib
 from utils.dynamodb_accessor import DynamoDBAccessor
+from utils.hash_utils import generate_sha256_hash
 from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
     create_error_response, valid_service
 
@@ -135,9 +135,8 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         # Create a new item
         # check that object does not exist before adding.
         categories_with_hash_id = ["surgeons"]
-        salt = os.environ['HASH_ID_SALT']
-        internal_resource_id = generate_sha256_hash(resource_id,
-                                                    salt) if category_id in categories_with_hash_id else resource_id
+        internal_resource_id = generate_sha256_hash(
+            resource_id) if category_id in categories_with_hash_id else resource_id
         item = db_accessor.get_item(tenant_id, internal_resource_id)
         if item is not None:
             raise FileExistsError(f"Resource already exist: {internal_resource_id}")
@@ -170,11 +169,3 @@ def dynamodb_decimal_default_encoder(obj):
     if isinstance(obj, Decimal):
         return float(obj)  # or use str(obj) if you want to preserve exactness
     raise TypeError
-
-
-def generate_sha256_hash(data, salt):
-    data_with_salt = data + salt
-    sha256_hash = hashlib.sha256()
-    sha256_hash.update(data_with_salt.encode())
-    hashed_string = sha256_hash.hexdigest()
-    return hashed_string

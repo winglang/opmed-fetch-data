@@ -239,10 +239,6 @@ def proactive_block_realise(event, cotext):
     pass
 
 
-def is_task(task):
-    return 'parent_block_id' in task
-
-
 if __name__ == '__main__':
     event = {
         "queryStringParameters": {
