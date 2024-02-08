@@ -8,6 +8,8 @@ from utils.hash_utils import generate_sha256_hash
 from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
     create_error_response, valid_service
 
+SALT = os.getenv('HASH_ID_SALT')
+
 
 def lambda_handler(event, context):
     print(event)
@@ -136,7 +138,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         # check that object does not exist before adding.
         categories_with_hash_id = ["surgeons"]
         internal_resource_id = generate_sha256_hash(
-            resource_id) if category_id in categories_with_hash_id else resource_id
+            resource_id, SALT) if category_id in categories_with_hash_id else resource_id
         item = db_accessor.get_item(tenant_id, internal_resource_id)
         if item is not None:
             raise FileExistsError(f"Resource already exist: {internal_resource_id}")
