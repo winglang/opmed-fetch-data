@@ -1,9 +1,9 @@
 import requests
 
-from utils.services_utils import lowercase_headers, get_username
+from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS
 
 
-def proactive_block_realise(event, cotext):
+def proactive_block_realise(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
@@ -13,9 +13,12 @@ def proactive_block_realise(event, cotext):
 
     queryStringParameters = {key: val for key, val in event.get('queryStringParameters', {}).items() if
                              key in ['from', 'to']}
+    headers = {key: val for key, val in event.get('headers', {}).items() if
+               key.lower() in AUTH_HEADERS}
+
     url = 'https://plannerd.greatmix.ai'
 
-    fetch_data = requests.get(f'{url}/fetch-data/v2', params=queryStringParameters, headers=event['headers']).json()
+    fetch_data = requests.get(f'{url}/fetch-data/v2', params=queryStringParameters, headers=headers).json()
 
     data_to_predict = {
         'blocks': fetch_data["blocks"],
@@ -31,7 +34,7 @@ def proactive_block_realise(event, cotext):
         }
     }
 
-    res = requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=event['headers'])
+    res = requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=event['headers']).json()
     return res["blocks"]
 
 
@@ -39,7 +42,7 @@ if __name__ == '__main__':
     event = {
         "queryStringParameters": {
             'from': '2024-01-01',
-            'to': '2024-01-31'
+            'to': '2024-01-05'
         },
         'headers': {
             "gmix_serviceid": "hmc-users",
