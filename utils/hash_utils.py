@@ -1,8 +1,7 @@
 import hashlib
-import os
 
 
-def generate_sha256_hash(data, salt=os.getenv('HASH_ID_SALT', '')):
+def generate_sha256_hash(data, salt):
     data_with_salt = data + salt
     sha256_hash = hashlib.sha256()
     sha256_hash.update(data_with_salt.encode())

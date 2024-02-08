@@ -10,6 +10,8 @@ from utils.services_utils import get_service, Service, handle_error_response, lo
 
 MAX_DELTA_DAYS = 370
 
+SALT = os.getenv('HASH_ID_SALT')
+
 
 def is_block(record):
     return not is_task(record)
@@ -24,19 +26,20 @@ def convert_block_algo_model(block):
     algo_model_block = {
         'start': block['start'],
         'end': block['end'],
-        'hash_nurse_name': [generate_sha256_hash(nurse.split(' - ')[0]) for nurse in block['nurse_name'].split(',') if
+        'hash_nurse_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
+                            block['nurse_name'].split(',') if
                             nurse],
-        'hash_sanitaire_name': [generate_sha256_hash(sanitaire.split(' - ')[0]) for sanitaire in
+        'hash_sanitaire_name': [generate_sha256_hash(sanitaire.split(' - ')[0], SALT) for sanitaire in
                                 block['sanitaire_name'].split(',') if sanitaire],
-        'hash_assistant_name': [generate_sha256_hash(assistant.split(' - ')[0]) for assistant in
+        'hash_assistant_name': [generate_sha256_hash(assistant.split(' - ')[0], SALT) for assistant in
                                 block['assistant_name'].split(',') if assistant],
-        'hash_anesthetist_name': [generate_sha256_hash(nurse.split(' - ')[0]) for nurse in
+        'hash_anesthetist_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
                                   block['anesthetist_name'].split(',') if nurse],
-        'hash_title': generate_sha256_hash(block['title']),
+        'hash_title': generate_sha256_hash(block['title'], SALT),
         'resourceId': block['resourceId'],
         'id': block['id'],
         'doctor_id': block['doctor_id'],
-        'doctor_license': generate_sha256_hash(block['doctors_license']),
+        'doctors_license': generate_sha256_hash(block['doctors_license'], SALT),
 
     }
 
@@ -48,7 +51,7 @@ def convert_task_algo_model(task, i):
     algo_model_task = {
         'start_time': task['start'],
         'end_time': task['end'],
-        'hash_doc_name': generate_sha256_hash(task['doc_name']),
+        'hash_doc_name': generate_sha256_hash(task['doc_name'], SALT),
         'incrementalNumber': i,
         'resourceId': task['resourceId'],
         'id': task['id'],
