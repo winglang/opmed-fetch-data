@@ -18,6 +18,8 @@ DOMAIN_TO_USER_GROUPS = {
 
 }
 
+AUTH_HEADERS = {"gmix_serviceid", "referer", "cookie"}
+
 
 class Service(Enum):
     HMC = "hmc-users"
@@ -142,9 +144,8 @@ def get_service(event):
 
 
 def lowercase_headers(event):
-    headers = {"gmix_serviceid", "referer", "cookie"}
     event['headers'] = {k.lower(): v for k, v in event['headers'].items()}
 
     # check if all headers are received
-    if headers.difference(event['headers']):
-        return {"statusCode": 400, "error": f'missing headers: {headers.difference(event["headers"])}'}
+    if AUTH_HEADERS.difference(event['headers']):
+        return {"statusCode": 400, "error": f'missing headers: {AUTH_HEADERS.difference(event["headers"])}'}
