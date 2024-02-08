@@ -34,8 +34,15 @@ def proactive_block_realise(event, context):
         }
     }
 
-    res = requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=event['headers']).json()
-    return res["blocks"]
+    res = requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=headers).json()
+
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": res["blocks"]
+    }
 
 
 if __name__ == '__main__':
