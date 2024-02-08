@@ -36,7 +36,7 @@ def convert_block_algo_model(block):
         'resourceId': block['resourceId'],
         'id': block['id'],
         'doctor_id': block['doctor_id'],
-        'doctor_license': generate_sha256_hash(block['doctors_license']),
+        'doctors_license': generate_sha256_hash(block['doctors_license']),
 
     }
 
