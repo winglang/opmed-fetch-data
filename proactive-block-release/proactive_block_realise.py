@@ -39,12 +39,7 @@ def proactive_block_realise(event, cotext):
         }
     }
 
-    # with open('event.json', 'w') as f:
-    #     json.dump(data_to_predict, f)
-
-    res = requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=event['headers'])
-
-    pass
+    return requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=event['headers'])
 
 
 if __name__ == '__main__':
