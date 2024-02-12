@@ -5,9 +5,87 @@ import os
 import boto3
 
 from utils.data_utils import CustomJSONEncoder
+from utils.hash_utils import generate_sha256_hash
 from utils.services_utils import get_service, Service, handle_error_response, lowercase_headers, get_username
 
 MAX_DELTA_DAYS = 370
+
+SALT = os.getenv('HASH_ID_SALT')
+
+
+def is_block(record):
+    return not is_task(record)
+
+
+def is_task(task):
+    return 'parent_block_id' in task
+
+
+def convert_block_algo_model(block):
+    block = {k: v or '' for k, v in block.items()}
+    algo_model_block = {
+        'start': block['start'],
+        'end': block['end'],
+        'hash_nurse_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
+                            block['nurse_name'].split(',') if
+                            nurse],
+        'hash_sanitaire_name': [generate_sha256_hash(sanitaire.split(' - ')[0], SALT) for sanitaire in
+                                block['sanitaire_name'].split(',') if sanitaire],
+        'hash_assistant_name': [generate_sha256_hash(assistant.split(' - ')[0], SALT) for assistant in
+                                block['assistant_name'].split(',') if assistant],
+        'hash_anesthetist_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
+                                  block['anesthetist_name'].split(',') if nurse],
+        'hash_title': generate_sha256_hash(block['title'], SALT),
+        'resourceId': block['resourceId'],
+        'id': block['id'],
+        'doctor_id': block['doctor_id'],
+        'doctors_license': generate_sha256_hash(block['doctors_license'], SALT),
+
+    }
+
+    return algo_model_block
+
+
+def convert_task_algo_model(task, i):
+    task = {k: v or '' for k, v in task.items()}
+    algo_model_task = {
+        'start_time': task['start'],
+        'end_time': task['end'],
+        'hash_doc_name': generate_sha256_hash(task['doc_name'], SALT),
+        'incrementalNumber': i,
+        'resourceId': task['resourceId'],
+        'id': task['id'],
+        'surgery_id': task['surgery_id'],
+        'parent_block_id': task['parent_block_id'],
+        'procedure': task['procedure'],
+        'procedure_icd': task['procedure']['current'][0]['procedure_icd'],
+        'procedure_name': task['procedure']['current'][0]['procedure_name'],
+        'surgery_name': task['procedure']['current'][0]['surgery_name'],
+        'type': task['procedure']['current'][0]['surgery_name'].split(' > ')[-1],
+        'patient_age': task['patient_age'],
+        'anesthesia': task['anesthesia'],
+
+        'resources': [],
+        'xray_type': task.get('xray_type'),
+        'xray_type_value': task.get('xray_type_value'),
+        'tee_request': task.get('tee_request'),
+        'heart_lung_machine_request': task.get('heart_lung_machine_request'),
+        'additionalEquipment': task.get('additionalEquipment')
+
+    }
+
+    return algo_model_task
+
+
+def convert_to_algo_model(fetch_data: list):
+    blocks = [convert_block_algo_model(block) for block in fetch_data if is_block(block)]
+    tasks = [convert_task_algo_model(task, i) for i, task in enumerate(fetch_data) if is_task(task)]
+
+    fetch_data = {
+        'blocks': blocks,
+        'tasks': tasks
+    }
+    return fetch_data
 
 
 def lambda_handler(event, context):
@@ -66,6 +144,10 @@ def lambda_handler(event, context):
     records_array = get_data(url, data, headers)
     if records_array is None:
         return handle_error_response({"statusCode": 200, "error": "fail to fetch data"})
+
+    method = event['path'].rsplit('/', 1)[-1]
+    if method == 'v2':
+        records_array = convert_to_algo_model(fetch_data=records_array)
 
     response_fetch = json.dumps(records_array, cls=CustomJSONEncoder)
 
