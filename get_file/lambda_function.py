@@ -52,8 +52,14 @@ def lambda_handler(event, context):
     if not valid_service(service):
         return handle_error_response(service)
 
-    s3_path = os.getenv('prefix', '') + service + "/" + event['queryStringParameters']['file']
-    url = create_presigned_url(os.environ['BUCKET'], s3_path, os.environ['EXPIRATION'])
+    bucket = os.getenv('BUCKET')
+    requested_file = os.path.normpath('/' + event['queryStringParameters']['file']).lstrip('/')
+    s3_path = os.getenv('prefix', '') + service + "/" + requested_file
+    url = create_presigned_url(bucket, s3_path, os.environ['EXPIRATION'])
+
+    if not url.startswith(f"https://{bucket}.s3.amazonaws.com/{os.getenv('prefix', '') + service}"):
+        return handle_error_response({"statusCode": 400, "error": "bad path"})
+
     last_modified = get_last_modified(os.environ['BUCKET'], s3_path)
 
     return {
