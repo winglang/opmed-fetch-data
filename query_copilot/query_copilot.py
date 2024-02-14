@@ -42,7 +42,7 @@ def query_lang_model(content):
     return res.json()['choices'][0]['message']['content']
 
 
-def proactive_block_realise(event, context):
+def query_copilot_lambda_handler(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
@@ -52,9 +52,9 @@ def proactive_block_realise(event, context):
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'explain-alternative-plans':
-        res = query_lang_model(explain_alternative_plans(json.loads(event['body'])))
+        res = query_lang_model(explain_alternative_plans(event['body']))
     elif method == 'explain-block-allocation':
-        res = query_lang_model(explain_alternative_plans(json.loads(event['body'])))
+        res = query_lang_model(explain_alternative_plans(event['body']))
     else:
         res = f'method not found: {method}'
 
