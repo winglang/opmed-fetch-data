@@ -1,10 +1,11 @@
 import json
 import os
 import time
+from collections import defaultdict
 from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
-import pandas as pd
 import requests
 
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS
@@ -25,13 +26,13 @@ def predict_blocks(data_to_predict, headers):
 
 def predict_blocks_concurrently(data_to_predict, headers):
     with ThreadPoolExecutor(max_workers=30) as executor:
-        blocks_df = pd.DataFrame(data_to_predict['blocks'])
-        grouped_blocks = {key: df.to_dict('records') for key, df in
-                          blocks_df.groupby(pd.to_datetime(blocks_df['start']).dt.date)}
+        grouped_blocks = defaultdict(list)
+        for block in data_to_predict['blocks']:
+            grouped_blocks[datetime.fromisoformat(block['start']).date()].append(block)
 
-        tasks_df = pd.DataFrame(data_to_predict['tasks'])
-        grouped_tasks = {key: df.to_dict('records') for key, df in
-                         tasks_df.groupby(pd.to_datetime(tasks_df['start_time']).dt.date)}
+        grouped_tasks = defaultdict(list)
+        for task in data_to_predict['tasks']:
+            grouped_tasks[datetime.fromisoformat(task['start_time']).date()].append(task)
 
         requests_data_to_send = {}
         for day in grouped_blocks.keys():
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     event = {
         "queryStringParameters": {
             'from': '2024-02-01',
-            'to': '2024-02-29'
+            'to': '2024-02-05'
         },
         'headers': {
             "gmix_serviceid": "hmc-users",
