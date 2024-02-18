@@ -68,6 +68,19 @@ def get_username(cookies: str) -> str:
         return ""
 
 
+def get_cookie_exp(cookies: str) -> str:
+    try:
+        cookies_array = [c for c in cookies.split("; ") if "CognitoIdentityServiceProvider" in c and "accessToken" in c]
+        if len(cookies_array) != 1:
+            raise Exception("Invalid number of cookies")
+        JWT = cookies_array[0].split("=")[1]
+        jwt_payload = json.loads(base64.urlsafe_b64decode(JWT.split(".")[1] + "==="))
+        return jwt_payload['exp']
+    except Exception as e:
+        print(e, "cookies error")
+        return ""
+
+
 def get_user_groups(event):
     try:
         # Read JWT from cookie (user is authenticated in CF using that cookie)
@@ -136,6 +149,31 @@ def get_service(event):
 
         # If the requested service is not found in the list of groups, return 401
         return {"statusCode": 401, "error": f'{username} unauthorized to access {requested_service} in domain {domain}'}
+
+    except Exception as e:
+        # Handle any errors that may occur and return None
+        print("Error: ", e)
+        return {"statusCode": 500, "error": e}
+
+
+def get_auth_cookie_data(event):
+    try:
+        if lowercase_headers(event):
+            return lowercase_headers(event)
+
+        # Get the list of user groups from the authorizer context
+        groups = get_user_groups(event)
+        username = get_username(event['headers']['cookie'])
+        exp = get_cookie_exp(event['headers']['cookie'])
+        domain = urlparse(event['headers']['referer']).hostname
+
+        # If the requested service is not found in the list of groups, return 401
+        return {
+            "username": username,
+            "domain": domain,
+            "groups": groups,
+            "exp": exp,
+        }
 
     except Exception as e:
         # Handle any errors that may occur and return None

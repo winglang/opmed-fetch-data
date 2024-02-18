@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
 from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
-    create_error_response, valid_service
+    create_error_response, valid_service, get_auth_cookie_data
 
 
 def lambda_handler(event, context):
@@ -43,10 +43,12 @@ def lambda_handler(event, context):
     if http_method == 'GET' and len(path_splits) == 4:
         all_data = get_all_data_for_tenant(service)
         print("Read all data. data:", all_data)
+        auth = get_auth_cookie_data(event)
         return {
             'statusCode': 200,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "auth-data": json.dumps(auth)
             },
             'body': json.dumps(all_data, default=dynamodb_decimal_default_encoder)
         }
