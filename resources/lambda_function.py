@@ -92,6 +92,14 @@ def get_table_name(category_id):
     return table_name
 
 
+def handle_mapping_request(items_to_hash):
+    results = []
+    for item in items_to_hash:
+        hashed = generate_sha256_hash(item, salt=SALT)
+        results.append(hashed)
+    return results
+
+
 def get_all_data_for_category(tenant_id, category_id):
     # Ensure that tenant_id is provided
     if not tenant_id:
@@ -112,6 +120,9 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
     # Validate input
     if not tenant_id or not category_id or not resource_id:
         raise ValueError("Missing required parameters")
+
+    if resource_id == "mapping":
+        return handle_mapping_request(data)
 
     # Initialize the DynamoDB accessor
     table_name = get_table_name(category_id)
