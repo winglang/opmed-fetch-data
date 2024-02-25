@@ -64,14 +64,14 @@ def convert_task_algo_model(task, i):
         'type': task['procedure']['current'][0]['surgery_name'].split(' > ')[-1],
         'patient_age': task['patient_age'],
         'anesthesia': task['anesthesia'],
-
         'resources': [],
         'xray_type': task.get('xray_type'),
         'xray_type_value': task.get('xray_type_value'),
         'tee_request': task.get('tee_request'),
         'heart_lung_machine_request': task.get('heart_lung_machine_request'),
-        'additionalEquipment': task.get('additionalEquipment')
-
+        'additionalEquipment': task.get('additionalEquipment'),
+        'sur_name': task.get('sur_name'),
+        'doc_name': task.get('doc_name')
     }
 
     return algo_model_task
