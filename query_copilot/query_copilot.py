@@ -5,6 +5,8 @@ import requests
 
 from utils.services_utils import lowercase_headers, get_username
 
+# TODO: modify prompt to explain differences between alternative_plans and original_schedule
+
 api_key = os.getenv('API_KEY')
 lang_model_url = os.getenv('LANG_MODEL_URL')
 
