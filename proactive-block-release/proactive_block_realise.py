@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -44,7 +45,7 @@ def proactive_block_realise(event, context):
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": res.text
+        "body": json.dumps(res.json()['blocks']) if res.status_code == 200 else res.text
     }
 
 
