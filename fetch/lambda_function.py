@@ -46,7 +46,7 @@ def convert_block_algo_model(block):
     return algo_model_block
 
 
-def convert_task_algo_model(task, i):
+def convert_task_algo_model(task, i, parent_block):
     task = {k: v or '' for k, v in task.items()}
     algo_model_task = {
         'start_time': task['start'],
@@ -64,7 +64,10 @@ def convert_task_algo_model(task, i):
         'type': task['procedure']['current'][0]['surgery_name'].split(' > ')[-1],
         'patient_age': task['patient_age'],
         'anesthesia': task['anesthesia'],
-        'resources': [],
+        'resources': {
+            resource: parent_block.get(f'hash_{resource}_name') for resource in
+            ['nurse', 'sanitaire', 'assistant', 'anesthetist'] if parent_block.get(f'hash_{resource}_name')
+        },
         'xray_type': task.get('xray_type'),
         'xray_type_value': task.get('xray_type_value'),
         'tee_request': task.get('tee_request'),
@@ -78,11 +81,12 @@ def convert_task_algo_model(task, i):
 
 
 def convert_to_algo_model(fetch_data: list):
-    blocks = [convert_block_algo_model(block) for block in fetch_data if is_block(block)]
-    tasks = [convert_task_algo_model(task, i) for i, task in enumerate(fetch_data) if is_task(task)]
+    blocks = {block['id']: convert_block_algo_model(block) for block in fetch_data if is_block(block)}
+    tasks = [convert_task_algo_model(task, i, blocks[task['parent_block_id']]) for i, task in enumerate(fetch_data) if
+             is_task(task)]
 
     fetch_data = {
-        'blocks': blocks,
+        'blocks': list(blocks.values()),
         'tasks': tasks
     }
     return fetch_data
