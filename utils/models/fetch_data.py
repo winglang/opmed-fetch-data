@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Union, Literal
+
 from pydantic import BaseModel, validator
 
 
@@ -72,6 +73,7 @@ class OperationModelFetched(TimeModel):
     setup_time: Optional[int]
     patient_age: Optional[Union[int, Literal['-']]]
     anesthesia: Optional[str]
+    resources: Optional[dict]
 
 
 class ResponseFetch(BaseModel):
