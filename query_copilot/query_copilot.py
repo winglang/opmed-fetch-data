@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import time
@@ -75,16 +76,18 @@ def query_copilot_lambda_handler(event, context):
 
     username = get_username(event['headers']['cookie'])
 
+    request_data = json.loads(event['body'])
+
     print(f'username: {username}')
     start_time = time.time()  # Record the start time
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'explain-alternative-plans':
-        prompt, name_mapping = explain_alternative_plans(event['body'])
+        prompt, name_mapping = explain_alternative_plans(request_data)
         res = query_lang_model(prompt)
         pattern = re.compile("|".join(name_mapping.keys()))
         res = pattern.sub(lambda m: name_mapping[re.escape(m.group(0)).replace('\\', '')], res)
     elif method == 'explain-block-allocation':
-        res = query_lang_model(explain_alternative_plans(event['body']))
+        res = query_lang_model(explain_alternative_plans(request_data))
     else:
         res = f'method not found: {method}'
 
