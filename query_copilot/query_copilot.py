@@ -1,8 +1,7 @@
-import json
 import os
 import re
-from datetime import datetime
 import time
+from datetime import datetime
 
 import requests
 
@@ -29,13 +28,12 @@ def explain_alternative_plans(plans):
     num_differences_to_display = 3
     changes_to_display = changes_scores[:num_differences_to_display]
     # TODO: make the decoding and encoding work for future query types
-    doctor_names = ['Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones', 'Dr. Miller', 'Dr. Davis',]
+    doctor_names = ['Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones', 'Dr. Miller', 'Dr. Davis', ]
     mapping = {change['surgeon']: doctor_name for change, doctor_name in zip(changes_to_display, doctor_names)}
     for change in changes_to_display:
         change.pop('score')
         change['surgeon'] = mapping[change['surgeon']]
     reversed_mapping = {v: f'<{k}>' for k, v in mapping.items()}
-
 
     print("asking lang model")
 
@@ -51,15 +49,6 @@ def explain_alternative_plans(plans):
     ), reversed_mapping
 
 
-
-
-
-
-
-
-
-
-
 def query_lang_model(content):
     request = {
         "messages": [
@@ -69,7 +58,7 @@ def query_lang_model(content):
             }
         ],
         "temperature": 0.9,
-        "top_p": 0.95, # sample from the top 95% of the distribution
+        "top_p": 0.95,  # sample from the top 95% of the distribution
         "frequency_penalty": 0,
         "presence_penalty": 0,
         "max_tokens": 800,
@@ -99,11 +88,9 @@ def query_copilot_lambda_handler(event, context):
     else:
         res = f'method not found: {method}'
 
-
     end_time = time.time()  # Record the end time
 
     print(f"chatGPT query time: {end_time - start_time} seconds.")
-
 
     return {
         "statusCode": 200,
@@ -115,7 +102,6 @@ def query_copilot_lambda_handler(event, context):
 
 
 def score_block_difference(original_block, alternative_block):
-
     original_block['start'] = datetime.fromisoformat(original_block['start'])
     original_block['end'] = datetime.fromisoformat(original_block['end'])
 
@@ -133,8 +119,6 @@ def score_block_difference(original_block, alternative_block):
     duration_change = abs(alternative_block_duration - original_block_duration)
     duration_change = duration_change if duration_change >= 0.5 else 0
 
-
-
     c1, c2, c3 = 1, 1, 2
     return {
         'surgeon': original_block['doctor_id'],
@@ -148,18 +132,5 @@ def score_block_difference(original_block, alternative_block):
         # 'is_room_changed': is_room_changed,
         # 'start_time_change': start_time_change,
         # 'duration_change': duration_change,
-         'score': original_block_duration * (c1 * is_room_changed + c2 * start_time_change + c3 * duration_change),
+        'score': original_block_duration * (c1 * is_room_changed + c2 * start_time_change + c3 * duration_change),
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
