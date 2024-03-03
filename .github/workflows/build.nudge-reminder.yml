@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - nudge_reminder/**
+      - proactive_nudge_reminder/**
       - utils/**
       - .github/workflows/build.nudge-reminder.yml
 
