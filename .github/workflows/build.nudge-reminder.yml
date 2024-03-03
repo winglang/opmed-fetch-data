@@ -31,7 +31,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - name: zip lambda
-        run: zip -r lambda.zip nudge_reminder utils
+        run: zip -r lambda.zip proactive_nudge_reminder utils
       - name: Deploy AWS Lambda function
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
