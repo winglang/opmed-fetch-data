@@ -37,7 +37,7 @@ def send_reminder(event, context):
 def create_fancy_notification(block):
     return (f"Dear {block['surgeon_name']},\n"
             f"I hope this message finds you well. "
-            f"I am writing to discuss the upcoming surgery scheduled for {datetime.strftime(block['start_time'], "%b %d, %Y")}, at {block['start_time'].hour} PM in {block['room_id']}, which is currently allocated a block time of {block['original_duration']} hours."
+            f"I am writing to discuss the upcoming surgery scheduled for {datetime.strftime(block['start_time'], "%b %d, %Y")}, at {datetime.strftime(block['start_time'], "%H:%M %p")}  in {block['room_id']}, which is currently allocated a block time of {block['original_duration']} hours."
             "\n\n"
             f"Upon thorough review of the pre-operative planning and predictive analyses, it has come to our attention that the anticipated duration of this procedure may be overestimated."
             f" Based on the detailed simulations and historical data for similar cases, we have a strong conviction that the surgery could be efficiently completed within an {block['predicted_duration']}-hour timeframe without compromising the quality of care or patient safety."
