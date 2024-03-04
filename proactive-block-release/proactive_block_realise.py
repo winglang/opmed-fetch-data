@@ -1,12 +1,47 @@
 import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 
+import boto3
 import requests
+from boto3.dynamodb.conditions import Key
 
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS
 
 url = os.getenv('URL')
+blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
+
+
+def get_blocks_status(start, end):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(blocks_status_table_name)
+
+    filter_expression = Key('start').between(start, end)
+
+    response = table.scan(
+        FilterExpression=filter_expression
+    )
+
+    return {block['id']: block['status'] for block in response['Items']}
+
+
+def get_blocks_predictions(fetch_data, headers):
+    data_to_predict = {
+        'blocks': fetch_data["blocks"],
+        'tasks': fetch_data["tasks"],
+        "metadata": {
+            "use_ai_predictions": True,
+            "min_task_pred_abs": 15,
+            "min_task_pred_percent": 0,
+            "min_block_pred_abs": 0,
+            "min_block_pred_percent": 0,
+            "ignored_tasks_list": [],
+            "ignored_blocks_list": []
+        }
+    }
+
+    return requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=headers)
 
 
 def proactive_block_realise(event, context):
@@ -24,28 +59,28 @@ def proactive_block_realise(event, context):
 
     fetch_data = requests.get(f'{url}/fetch-data/v2', params=queryStringParameters, headers=headers).json()
 
-    data_to_predict = {
-        'blocks': fetch_data["blocks"],
-        'tasks': fetch_data["tasks"],
-        "metadata": {
-            "use_ai_predictions": True,
-            "min_task_pred_abs": 15,
-            "min_task_pred_percent": 0,
-            "min_block_pred_abs": 0,
-            "min_block_pred_percent": 0,
-            "ignored_tasks_list": [],
-            "ignored_blocks_list": []
-        }
-    }
+    with ThreadPoolExecutor() as executor:
+        get_blocks_predictions_future = executor.submit(get_blocks_predictions, fetch_data, headers)
+        get_blocks_status_future = executor.submit(get_blocks_status, queryStringParameters['from'],
+                                                   queryStringParameters['to'])
 
-    res = requests.post(f'{url}/block-population-risk', json=data_to_predict, headers=headers)
+        blocks_predictions_res = get_blocks_predictions_future.result()
+        blocks_status = get_blocks_status_future.result()
+
+    if blocks_predictions_res.status_code == 200:
+        predicted_blocks = blocks_predictions_res.json()['blocks']
+        for block in predicted_blocks:
+            block['status'] = blocks_status.get(block['id'], 'new')
+        response_body = json.dumps(predicted_blocks)
+    else:
+        response_body = blocks_predictions_res.text
 
     return {
-        "statusCode": res.status_code,
+        "statusCode": blocks_predictions_res.status_code,
         "headers": {
             "Content-Type": "application/json"
         },
-        "body": json.dumps(res.json()['blocks']) if res.status_code == 200 else res.text
+        "body": response_body
     }
 
 
