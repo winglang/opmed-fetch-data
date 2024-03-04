@@ -8,6 +8,6 @@ GPT_STOP = None
 
 # weights for plans differences
 NUM_DIFFERENCES_TO_DISPLAY = 3
-C1 = 1
-C2 = 1
-C3 = 2
+W_ROOM_CHANGE = 1
+W_TIME_CHANGE = 1
+W_DURATION_CHANGE = 2

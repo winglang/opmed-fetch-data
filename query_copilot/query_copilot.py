@@ -6,7 +6,7 @@ from datetime import datetime
 import requests
 
 from constants import TEMPERATURE, TOP_P, FREQUENCY_PENALTY, PRESENCE_PENALTY, MAX_TOKENS, GPT_STOP, \
-    NUM_DIFFERENCES_TO_DISPLAY, C1, C2, C3
+    NUM_DIFFERENCES_TO_DISPLAY, W_TIME_CHANGE, W_ROOM_CHANGE, W_DURATION_CHANGE
 from utils.services_utils import lowercase_headers, get_username
 
 api_key = os.getenv('API_KEY')
@@ -128,7 +128,6 @@ def score_block_difference(original_block, alternative_block):
     original_room_string = f'OR-{original_room_number}'
     alternative_room_string = f'OR-{alternative_room_number}'
 
-    c1, c2, c3 = C1, C2, C3
     return {
         'surgeon': original_block['doctor_id'],
         'original_room': original_room_string,
@@ -140,5 +139,6 @@ def score_block_difference(original_block, alternative_block):
         # 'is_room_changed': is_room_changed,
         # 'start_time_change': start_time_change,
         # 'duration_change': duration_change,
-        'score': original_block_duration * (c1 * is_room_changed + c2 * start_time_change + c3 * duration_change),
+        'score': original_block_duration * (
+                W_ROOM_CHANGE * is_room_changed + W_TIME_CHANGE * start_time_change + W_DURATION_CHANGE * duration_change),
     }
