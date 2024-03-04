@@ -137,7 +137,6 @@ def score_block_difference(original_block, alternative_block):
         'alternative_start': alternative_start_time_string_am_pm,
         'original_duration': original_block_duration,
         'alternative_block_duration': alternative_block_duration,
-
         # 'is_room_changed': is_room_changed,
         # 'start_time_change': start_time_change,
         # 'duration_change': duration_change,
