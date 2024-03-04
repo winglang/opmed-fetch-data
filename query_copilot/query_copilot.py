@@ -5,9 +5,9 @@ from datetime import datetime
 
 import requests
 
+from constants import TEMPERATURE, TOP_P, FREQUENCY_PENALTY, PRESENCE_PENALTY, MAX_TOKENS, GPT_STOP, \
+    NUM_DIFFERENCES_TO_DISPLAY, C1, C2, C3
 from utils.services_utils import lowercase_headers, get_username
-
-# TODO: modify prompt to explain differences between alternative_plans and original_schedule
 
 api_key = os.getenv('API_KEY')
 lang_model_url = os.getenv('LANG_MODEL_URL')
@@ -25,7 +25,7 @@ def compute_differences(plans):
 def explain_alternative_plans(plans):
     changes_scores = compute_differences(plans)
 
-    num_differences_to_display = 3
+    num_differences_to_display = NUM_DIFFERENCES_TO_DISPLAY
     changes_to_display = changes_scores[:num_differences_to_display]
     # TODO: make the decoding and encoding work for future query types
     doctor_names = ['Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones', 'Dr. Miller', 'Dr. Davis', ]
@@ -57,12 +57,12 @@ def query_lang_model(content):
                 "content": content
             }
         ],
-        "temperature": 0.9,
-        "top_p": 0.95,  # sample from the top 95% of the distribution
-        "frequency_penalty": 0,
-        "presence_penalty": 0,
-        "max_tokens": 800,
-        "stop": None
+        "temperature": TEMPERATURE,
+        "top_p": TOP_P,  # sample from the top 95% of the distribution
+        "frequency_penalty": FREQUENCY_PENALTY,
+        "presence_penalty": PRESENCE_PENALTY,
+        "max_tokens": MAX_TOKENS,
+        "stop": GPT_STOP,
     }
     headers = {'api-key': api_key, 'Content-Type': 'application/json'}
     res = requests.post(lang_model_url, json=request, headers=headers, timeout=600)
@@ -116,16 +116,25 @@ def score_block_difference(original_block, alternative_block):
     start_time_change = abs((alternative_block['start'] - original_block['start']).total_seconds() / 3600)
     start_time_change = start_time_change if start_time_change >= 0.5 else 0
 
+    original_start_time_string_am_pm = original_block['start'].strftime("%I:%M %p")
+    alternative_start_time_string_am_pm = alternative_block['start'].strftime("%I:%M %p")
+
     duration_change = abs(alternative_block_duration - original_block_duration)
     duration_change = duration_change if duration_change >= 0.5 else 0
 
-    c1, c2, c3 = 1, 1, 2
+    original_room_number = int(re.findall(r'\d+', original_block['resourceId'])[0])
+    alternative_room_number = int(re.findall(r'\d+', alternative_block['resourceId'])[0])
+
+    original_room_string = f'OR-{original_room_number}'
+    alternative_room_string = f'OR-{alternative_room_number}'
+
+    c1, c2, c3 = C1, C2, C3
     return {
         'surgeon': original_block['doctor_id'],
-        'original_room': original_block['resourceId'],
-        'original_start': original_block['start'].time(),
-        'alternative_room': alternative_block['resourceId'],
-        'alternative_start': alternative_block['start'].time(),
+        'original_room': original_room_string,
+        'original_start': original_start_time_string_am_pm,
+        'alternative_room': alternative_room_string,
+        'alternative_start': alternative_start_time_string_am_pm,
         'original_duration': original_block_duration,
         'alternative_block_duration': alternative_block_duration,
 
