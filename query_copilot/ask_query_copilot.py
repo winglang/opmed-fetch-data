@@ -45,6 +45,7 @@ def explain_alternative_plans(plans):
         f"Do not use the word slot. "
         f"To describe a block, use the name of the surgeon, the room and the start time."
         f"Do not provide introduction, just list the changes."
+        f"display numbers in hours and minutes."
 
     ), reversed_mapping
 
@@ -125,14 +126,11 @@ def score_block_difference(original_block, alternative_block):
     original_room_number = original_block['resourceId']
     alternative_room_number = alternative_block['resourceId']
 
-    original_room_string = f'OR-{original_room_number}'
-    alternative_room_string = f'OR-{alternative_room_number}'
-
     return {
         'surgeon': original_block['doctor_id'],
-        'original_room': original_room_string,
+        'original_room': original_room_number,
         'original_start': original_start_time_string_am_pm,
-        'alternative_room': alternative_room_string,
+        'alternative_room': alternative_room_number,
         'alternative_start': alternative_start_time_string_am_pm,
         'original_duration': original_block_duration,
         'alternative_block_duration': alternative_block_duration,

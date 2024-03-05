@@ -3,7 +3,7 @@ TEMPERATURE = 0.9
 TOP_P = 0.95  # sample from the top 95% of the distribution
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
-MAX_TOKENS = 800
+MAX_TOKENS = 300
 GPT_STOP = None
 
 # weights for plans differences
