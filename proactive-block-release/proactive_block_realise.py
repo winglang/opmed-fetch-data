@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import boto3
 import requests
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
@@ -17,10 +17,9 @@ def get_blocks_status(start, end, tenant):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(blocks_status_table_name)
 
-    filter_expression = Key('start').between(start, end) & Key("tenant_id").eq(tenant)
-
-    response = table.scan(
-        FilterExpression=filter_expression
+    response = table.query(
+        KeyConditionExpression=Key('tenant_id').eq(tenant),
+        FilterExpression=Attr('start').between(start, end)
     )
 
     return {block['id']: block['status'] for block in response['Items']}
