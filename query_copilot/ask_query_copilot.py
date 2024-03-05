@@ -6,7 +6,7 @@ from datetime import datetime
 
 import requests
 
-from constants import TEMPERATURE, TOP_P, FREQUENCY_PENALTY, PRESENCE_PENALTY, MAX_TOKENS, GPT_STOP, \
+from query_copilot.constants import TEMPERATURE, TOP_P, FREQUENCY_PENALTY, PRESENCE_PENALTY, MAX_TOKENS, GPT_STOP, \
     NUM_DIFFERENCES_TO_DISPLAY, W_TIME_CHANGE, W_ROOM_CHANGE, W_DURATION_CHANGE
 from utils.services_utils import lowercase_headers, get_username
 
