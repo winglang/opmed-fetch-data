@@ -43,7 +43,7 @@ def lambda_handler(event, context):
         return create_error_response(400, 'Invalid request')
 
     # We handle only specific categories.
-    valid_categories = ["surgeons", "nurses", "anesthesiologists"]
+    valid_categories = ["surgeons", "nurses", "anesthesiologists", "proactive-blocks"]
     resource_category_id = path_splits[4]
     if resource_category_id not in valid_categories:
         return create_error_response(400, 'Invalid request')
@@ -93,11 +93,7 @@ def get_table_name(category_id):
 
 
 def handle_mapping_request(items_to_hash):
-    results = []
-    for item in items_to_hash:
-        hashed = generate_sha256_hash(item, salt=SALT)
-        results.append(hashed)
-    return results
+    return [generate_sha256_hash(item, salt=SALT) for item in items_to_hash]
 
 
 def get_all_data_for_category(tenant_id, category_id):
