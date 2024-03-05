@@ -122,8 +122,8 @@ def score_block_difference(original_block, alternative_block):
     duration_change = abs(alternative_block_duration - original_block_duration)
     duration_change = duration_change if duration_change >= 0.5 else 0
 
-    original_room_number = int(re.findall(r'\d+', original_block['resourceId'])[0])
-    alternative_room_number = int(re.findall(r'\d+', alternative_block['resourceId'])[0])
+    original_room_number = original_block['resourceId']
+    alternative_room_number = alternative_block['resourceId']
 
     original_room_string = f'OR-{original_room_number}'
     alternative_room_string = f'OR-{alternative_room_number}'
