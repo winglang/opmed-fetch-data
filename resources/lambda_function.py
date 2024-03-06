@@ -43,7 +43,7 @@ def lambda_handler(event, context):
         return create_error_response(400, 'Invalid request')
 
     # We handle only specific categories.
-    valid_categories = ["surgeons", "nurses", "anesthesiologists", "proactive-blocks"]
+    valid_categories = ["surgeons", "nurses", "anesthesiologists", "proactive-blocks-status"]
     resource_category_id = path_splits[4]
     if resource_category_id not in valid_categories:
         return create_error_response(400, 'Invalid request')
@@ -155,11 +155,20 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         if id_created is False:
             raise ValueError(f"Fail to create internal id for external id. {internal_resource_id}")
         data['id'] = internal_resource_id
-        return db_accessor.put_item(tenant_id, internal_resource_id, data)
+
+        categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
+        save_nested = category_id in categories_saved_nested
+        return db_accessor.put_item(tenant_id, internal_resource_id, data, save_nested=save_nested)
 
     elif http_method == 'PUT':
         # Update an existing item
         return db_accessor.put_item(tenant_id, resource_id, data)
+
+    elif http_method == 'PATCH':
+        allowed_categories = ["proactive-blocks-status"]
+        if category_id not in allowed_categories:
+            raise ValueError(f"Unsupported category for PATCH: {category_id}")
+        return db_accessor.update_item(tenant_id, resource_id, data)
 
     elif http_method == 'DELETE':
         # Delete an item

@@ -30,17 +30,33 @@ class DynamoDBAccessor:
             print(f"Error reading from DynamoDB: {e}")
             return None
 
-    def put_item(self, tenant_id, data_id, data):
+    def put_item(self, tenant_id, data_id, data, save_nested=True):
         try:
             item = {
                 'tenant_id': tenant_id,
                 'data_id': data_id,
-                'data': data  # Assuming the entire JSON object is stored under the 'data' attribute
             }
+            item |= {'data': data} if save_nested else data
             self.table.put_item(Item=item)
             return True
         except Exception as e:
             print(f"Error writing to DynamoDB: {e}")
+            return False
+
+    def update_item(self, tenant_id, data_id, attribute_updates):
+        try:
+            updated_expression, expression_attribute_values = get_update_params(attribute_updates)
+            res = self.table.update_item(
+                Key={
+                    'tenant_id': tenant_id,
+                    'data_id': data_id
+                },
+                UpdateExpression=updated_expression,
+                ExpressionAttributeValues=expression_attribute_values
+            )
+            return res['ResponseMetadata']['HTTPStatusCode'] == 200
+        except Exception as e:
+            print(f"Error updating item in DynamoDB: {e}")
             return False
 
     def delete_item(self, tenant_id, data_id):
@@ -88,3 +104,23 @@ class DynamoDBAccessor:
         except Exception as e:
             print(f"Error querying DynamoDB: {e}")
             return {}
+
+
+def get_update_params(body):
+    """Given a dictionary we generate an update expression and a dict of values
+    to update a dynamodb table.
+
+    Params:
+        body (dict): Parameters to use for formatting.
+
+    Returns:
+        update expression, dict of values.
+    """
+    update_expression = ["set "]
+    update_values = dict()
+
+    for key, val in body.items():
+        update_expression.append(f" {key} = :{key},")
+        update_values[f":{key}"] = val
+
+    return "".join(update_expression)[:-1], update_values
