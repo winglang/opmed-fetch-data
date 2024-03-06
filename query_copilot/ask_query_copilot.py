@@ -4,7 +4,9 @@ import re
 import time
 from datetime import datetime
 
+import json_fingerprint
 import requests
+from json_fingerprint import hash_functions
 
 from query_copilot.constants import TEMPERATURE, TOP_P, FREQUENCY_PENALTY, PRESENCE_PENALTY, MAX_TOKENS, GPT_STOP, \
     NUM_DIFFERENCES_TO_DISPLAY, W_TIME_CHANGE, W_ROOM_CHANGE, W_DURATION_CHANGE
@@ -67,6 +69,10 @@ def query_lang_model(content):
         "stop": GPT_STOP,
     }
     headers = {'api-key': api_key, 'Content-Type': 'application/json'}
+
+    hashed_event = json_fingerprint.create(input=request | headers | lang_model_url,
+                                           hash_function=hash_functions.SHA256, version=1)
+
     res = requests.post(lang_model_url, json=request, headers=headers, timeout=600)
     return res.json()['choices'][0]['message']['content']
 
