@@ -43,7 +43,7 @@ def lambda_handler(event, context):
         return create_error_response(400, 'Invalid request')
 
     # We handle only specific categories.
-    valid_categories = ["surgeons", "nurses", "anesthesiologists", "proactive-blocks-status"]
+    valid_categories = ["surgeons", "nurses", "anesthesiologists", "proactive_blocks_status"]
     resource_category_id = path_splits[4]
     if resource_category_id not in valid_categories:
         return create_error_response(400, 'Invalid request')
@@ -165,7 +165,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
         return db_accessor.put_item(tenant_id, resource_id, data)
 
     elif http_method == 'PATCH':
-        allowed_categories = ["proactive-blocks-status"]
+        allowed_categories = ["proactive_blocks_status"]
         if category_id not in allowed_categories:
             raise ValueError(f"Unsupported category for PATCH: {category_id}")
         return db_accessor.update_item(tenant_id, resource_id, data)
