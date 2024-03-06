@@ -4,16 +4,36 @@ import re
 import time
 from datetime import datetime
 
+import boto3
 import json_fingerprint
 import requests
 from json_fingerprint import hash_functions
 
 from query_copilot.constants import TEMPERATURE, TOP_P, FREQUENCY_PENALTY, PRESENCE_PENALTY, MAX_TOKENS, GPT_STOP, \
     NUM_DIFFERENCES_TO_DISPLAY, W_TIME_CHANGE, W_ROOM_CHANGE, W_DURATION_CHANGE
+from utils.cache_utils import get_cache, update_cache
 from utils.services_utils import lowercase_headers, get_username
 
 api_key = os.getenv('API_KEY')
 lang_model_url = os.getenv('LANG_MODEL_URL')
+
+s3_client = boto3.client('s3', config=boto3.session.Config(signature_version='s3v4', ))
+bucket_name = os.environ['CACHE_BUCKET']
+
+
+def check_file_exists(s3_client, bucket_name, object_name):
+    try:
+        # Head object to check if the file exists
+        s3_client.head_object(Bucket=bucket_name, Key=object_name)
+        return True
+    except Exception as e:
+        if e.response['Error']['Code'] in ['404', '403']:
+            # File does not exist
+            return False
+        else:
+            # An error occurred
+            print(f"An error occurred:{e}")
+            return False
 
 
 def compute_differences(plans):
@@ -70,11 +90,16 @@ def query_lang_model(content):
     }
     headers = {'api-key': api_key, 'Content-Type': 'application/json'}
 
-    hashed_event = json_fingerprint.create(input=request | headers | lang_model_url,
-                                           hash_function=hash_functions.SHA256, version=1)
+    hashed_prompt = json_fingerprint.create(input=json.dumps(request | headers | {'url': lang_model_url}),
+                                            hash_function=hash_functions.SHA256, version=1)
+
+    if cached_response := get_cache(hashed_prompt):
+        return cached_response
 
     res = requests.post(lang_model_url, json=request, headers=headers, timeout=600)
-    return res.json()['choices'][0]['message']['content']
+    res = res.json()['choices'][0]['message']['content']
+    update_cache(json.dumps(res), hashed_prompt)
+    return res
 
 
 def query_copilot_lambda_handler(event, context):
