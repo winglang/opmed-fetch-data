@@ -6,8 +6,8 @@ PRESENCE_PENALTY = 0
 MAX_TOKENS = 300
 GPT_STOP = None
 
-# weights for plans differences
-NUM_DIFFERENCES_TO_DISPLAY = 3
+# weights for plan differences
+NUM_DIFFERENCES_TO_DISPLAY = 5
 W_ROOM_CHANGE = 1
 W_TIME_CHANGE = 1
 W_DURATION_CHANGE = 2
