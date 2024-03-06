@@ -1,0 +1,7 @@
+requests
+boto3
+Faker
+pydantic
+fhirpy
+pandas
+python-dotenv
