@@ -1,4 +1,4 @@
-name: Upload Lambda
+name: Upload Nudge Reminder Lambda
 
 on:
   push:
