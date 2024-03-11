@@ -64,7 +64,7 @@ def convert_task_algo_model(task, i, parent_block):
         'type': task['procedure']['current'][0]['surgery_name'].split(' > ')[-1],
         'patient_age': task['patient_age'],
         'anesthesia': task['anesthesia'],
-        'resources': {
+        'resources_ids': {
             resource: parent_block.get(f'hash_{resource}_name') for resource in
             ['nurse', 'sanitaire', 'assistant', 'anesthetist'] if parent_block.get(f'hash_{resource}_name')
         },
