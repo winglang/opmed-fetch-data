@@ -49,8 +49,8 @@ def convert_block_algo_model(block):
 def convert_task_algo_model(task, i, parent_block):
     task = {k: v or '' for k, v in task.items()}
     algo_model_task = {
-        'start_time': task['start'],
-        'end_time': task['end'],
+        'start': task['start'],
+        'end': task['end'],
         'hash_doc_name': generate_sha256_hash(task['doc_name'], SALT),
         'incrementalNumber': i,
         'resourceId': task['resourceId'],
