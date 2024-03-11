@@ -22,7 +22,7 @@ def get_blocks_status(start, end, tenant):
         FilterExpression=Attr('start').between(start, end)
     )
 
-    return {block['id']: block['status'] for block in response['Items']}
+    return {block['id']: block['releaseStatus'] for block in response['Items']}
 
 
 def get_blocks_predictions(fetch_data, headers):
@@ -72,7 +72,7 @@ def proactive_block_realise(event, context):
     if blocks_predictions_res.status_code == 200:
         predicted_blocks = blocks_predictions_res.json()['blocks']
         for block in predicted_blocks:
-            block['status'] = blocks_status.get(block['id'], 'new')
+            block['releaseStatus'] = blocks_status.get(block['id'], 'new')
         response_body = json.dumps(predicted_blocks)
     else:
         response_body = blocks_predictions_res.text
