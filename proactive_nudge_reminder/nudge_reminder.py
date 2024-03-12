@@ -22,12 +22,10 @@ def send_reminder(event, context):
     request_body = json.loads(event['body'])
     blocks = request_body['blocks']
 
-    queryStringParameters = {key: val for key, val in event.get('queryStringParameters', {}).items() if
-                             key in ['from', 'to']}
     headers = {key: val for key, val in event.get('headers', {}).items() if
                key.lower() in AUTH_HEADERS}
 
-    update_blocks_status(blocks, headers, queryStringParameters)
+    update_blocks_status(blocks, headers)
 
     link_for_surgeon = create_link(blocks)
 
@@ -68,10 +66,10 @@ def create_link(blocks):
     return url + '/block-release?' + urllib.parse.urlencode(params)
 
 
-def update_blocks_status(blocks, headers, queryStringParameters):
+def update_blocks_status(blocks, headers):
     for block in blocks:
         block['releaseStatus'] = 'pending'
         block['expired_at'] = int(datetime.fromisoformat(block['start']).timestamp())
         update_url = f'{url}/api/v1/resources/proactive_blocks_status/{block['blockId']}'
 
-        requests.put(update_url, json=block, headers=headers, params=queryStringParameters)
+        requests.put(update_url, json=block, headers=headers)
