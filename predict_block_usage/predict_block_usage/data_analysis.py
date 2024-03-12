@@ -187,8 +187,8 @@ def compute_averages_dict(df):
             # Filter the data for this period
             period_data = surgeon_data[(surgeon_data['date'] > period_start_date) & (surgeon_data['date'] <= last_date)]
 
-            # Check if there are enough data points for the period
-            if len(period_data) == weeks / 4:
+            # Check if there are enough data points for the period, allow somme slackness
+            if len(period_data) == (weeks - 1) / 4:
                 # Calculate the average and update the surgeon's dictionary
                 surgeon_dict[period_name] = round(period_data['duration_sum'].mean(), 2)
             else:
