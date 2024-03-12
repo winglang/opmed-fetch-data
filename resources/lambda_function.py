@@ -162,7 +162,9 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
 
     elif http_method == 'PUT':
         # Update an existing item
-        return db_accessor.put_item(tenant_id, resource_id, data)
+        categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
+        save_nested = category_id in categories_saved_nested
+        return db_accessor.put_item(tenant_id, resource_id, data, save_nested=save_nested)
 
     elif http_method == 'PATCH':
         allowed_categories = ["proactive_blocks_status"]

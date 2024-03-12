@@ -1,8 +1,14 @@
 import json
+import os
+import urllib
 from datetime import datetime
 
+import requests
+
 from proactive_nudge_reminder.send_email import send_email
-from utils.services_utils import lowercase_headers, get_username
+from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS
+
+url = os.getenv('URL')
 
 
 def send_reminder(event, context):
@@ -11,16 +17,23 @@ def send_reminder(event, context):
 
     username = get_username(event['headers']['cookie'])
 
-    block = json.loads(event['body'])
-    block['start_time'] = datetime.fromisoformat(block['start_time'])
-
     print(f'username: {username}')
+
+    request_body = json.loads(event['body'])
+    blocks = request_body['blocks']
+
+    headers = {key: val for key, val in event.get('headers', {}).items() if
+               key.lower() in AUTH_HEADERS}
+
+    update_blocks_status(blocks, headers)
+
+    link_for_surgeon = create_link(blocks)
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'send-email':
-        subject = f'Request for Adjusted Surgery Duration on {datetime.strftime(block['start_time'], "%b %d, %Y")}'
-        email_text = create_fancy_notification(block)
-        send_email(subject=subject, body={'text': email_text})
+        subject = get_email_subject(blocks)
+        email_content = request_body['content'] + '\n\n' + f'please reply in the provided link\n\n{link_for_surgeon}'
+        send_email(subject=subject, body={'text': email_content}, recipients=request_body['recipients'])
         res = 'sent nudge email'
     else:
         res = f'method not found: {method}'
@@ -34,12 +47,34 @@ def send_reminder(event, context):
     }
 
 
-def create_fancy_notification(block):
-    return (f"Dear {block['surgeon_name']},\n"
-            f"I hope this message finds you well. "
-            f"I am writing to discuss the upcoming surgery scheduled for {datetime.strftime(block['start_time'], "%b %d, %Y")}, at {datetime.strftime(block['start_time'], "%H:%M %p")}  in {block['room_id']}, which is currently allocated a block time of {block['original_duration']} hours."
-            "\n\n"
-            f"Upon thorough review of the pre-operative planning and predictive analyses, it has come to our attention that the anticipated duration of this procedure may be overestimated."
-            f" Based on the detailed simulations and historical data for similar cases, we have a strong conviction that the surgery could be efficiently completed within an {block['predicted_duration']}-hour timeframe without compromising the quality of care or patient safety."
-            f"\n\n"
-            f"Would it be possible to review the current plan and consider this adjustment?")
+def get_email_subject(blocks):
+    days = [datetime.strftime(date, "%b %d, %Y") for date in
+            sorted({datetime.fromisoformat(block['start']) for block in blocks})]
+    if len(days) > 1:
+        days = ', '.join(days[:-1]) + ' and ' + days[-1]
+    else:
+        days = days[0]
+    subject = f'Request for Adjusted Surgery Duration on {days}'
+    return subject
+
+
+def generate_token():
+    return 'temp_token'
+
+
+def create_link(blocks):
+    params = {
+        'token': generate_token(),
+        'block_ids': [block['blockId'] for block in blocks]
+    }
+
+    return url + '/block-release?' + urllib.parse.urlencode(params)
+
+
+def update_blocks_status(blocks, headers):
+    for block in blocks:
+        block['releaseStatus'] = 'pending'
+        block['expired_at'] = int(datetime.fromisoformat(block['start']).timestamp())
+        update_url = f'{url}/api/v1/resources/proactive_blocks_status/{block['blockId']}'
+
+        requests.put(update_url, json=block, headers=headers)

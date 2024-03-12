@@ -10,7 +10,7 @@ def send_email(subject, body, attachments=None, recipients=None):
     attachments = attachments or []
 
     recipients = recipients or os.environ.get('recipients').split(', ')
-    sender = os.environ.get('sender') if 'sender' in os.environ else 'bot@greatmix.ai'
+    sender = os.environ.get('sender') if 'sender' in os.environ else 'bot@opmed.ai'
 
     msg = create_multipart_message(sender, recipients, subject, body.get('text'), body.get('html'), attachments)
     ses_client = boto3.client('ses')  # Use your settings here
