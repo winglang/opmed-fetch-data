@@ -49,8 +49,8 @@ def convert_block_algo_model(block):
 def convert_task_algo_model(task, i, parent_block):
     task = {k: v or '' for k, v in task.items()}
     algo_model_task = {
-        'start_time': task['start'],
-        'end_time': task['end'],
+        'start': task['start'],
+        'end': task['end'],
         'hash_doc_name': generate_sha256_hash(task['doc_name'], SALT),
         'incrementalNumber': i,
         'resourceId': task['resourceId'],
@@ -64,7 +64,7 @@ def convert_task_algo_model(task, i, parent_block):
         'type': task['procedure']['current'][0]['surgery_name'].split(' > ')[-1],
         'patient_age': task['patient_age'],
         'anesthesia': task['anesthesia'],
-        'resources': {
+        'resources_ids': {
             resource: parent_block.get(f'hash_{resource}_name') for resource in
             ['nurse', 'sanitaire', 'assistant', 'anesthetist'] if parent_block.get(f'hash_{resource}_name')
         },
