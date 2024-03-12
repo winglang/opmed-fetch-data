@@ -26,16 +26,16 @@ def convert_block_algo_model(block):
     algo_model_block = {
         'start': block['start'],
         'end': block['end'],
-        'hash_nurse_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
+        'hash_nurse_name': [nurse.split(' - ')[0] for nurse in
                             block['nurse_name'].split(',') if
                             nurse],
-        'hash_sanitaire_name': [generate_sha256_hash(sanitaire.split(' - ')[0], SALT) for sanitaire in
+        'hash_sanitaire_name': [sanitaire.split(' - ')[0] for sanitaire in
                                 block['sanitaire_name'].split(',') if sanitaire],
-        'hash_assistant_name': [generate_sha256_hash(assistant.split(' - ')[0], SALT) for assistant in
+        'hash_assistant_name': [assistant.split(' - ')[0] for assistant in
                                 block['assistant_name'].split(',') if assistant],
-        'hash_anesthetist_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
-                                  block['anesthetist_name'].split(',') if nurse],
-        'hash_title': generate_sha256_hash(block['title'], SALT),
+        'hash_anesthetist_name': [anesthetist.split(' - ')[0] for anesthetist in
+                                  block['anesthetist_name'].split(',') if anesthetist],
+        'hash_title': generate_sha256_hash(block['title'], SALT),  # Patch: Some tenants send doctors names in the title which we want to hide.
         'resourceId': block['resourceId'],
         'id': block['id'],
         'doctor_id': block['doctor_id'],
