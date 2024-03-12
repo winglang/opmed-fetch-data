@@ -31,15 +31,9 @@ def send_reminder(event, context):
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'send-email':
-        days = [datetime.strftime(date, "%b %d, %Y") for date in
-                sorted({datetime.fromisoformat(block['start']) for block in blocks})]
-        if len(days) > 1:
-            days = ', '.join(days[:-1]) + ' and ' + days[-1]
-        else:
-            days = days[0]
-        subject = f'Request for Adjusted Surgery Duration on {days}'
-        email_text = request_body['content'] + '\n\n' + f'please reply in the provided link\n\n{link_for_surgeon}'
-        send_email(subject=subject, body={'text': email_text}, recipients=request_body['recipients'])
+        subject = get_email_subject(blocks)
+        email_content = request_body['content'] + '\n\n' + f'please reply in the provided link\n\n{link_for_surgeon}'
+        send_email(subject=subject, body={'text': email_content}, recipients=request_body['recipients'])
         res = 'sent nudge email'
     else:
         res = f'method not found: {method}'
@@ -51,6 +45,17 @@ def send_reminder(event, context):
         },
         "body": res
     }
+
+
+def get_email_subject(blocks):
+    days = [datetime.strftime(date, "%b %d, %Y") for date in
+            sorted({datetime.fromisoformat(block['start']) for block in blocks})]
+    if len(days) > 1:
+        days = ', '.join(days[:-1]) + ' and ' + days[-1]
+    else:
+        days = days[0]
+    subject = f'Request for Adjusted Surgery Duration on {days}'
+    return subject
 
 
 def generate_token():
