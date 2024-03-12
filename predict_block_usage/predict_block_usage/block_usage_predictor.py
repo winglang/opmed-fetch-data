@@ -8,7 +8,7 @@ from predict_block_usage.utils.s3_utils import get_s3_object, put_item_in_s3
 
 SCHEDULED_SURGERIES_DB_FILE_NAME = None
 BUCKET_NAME_DB = None
-BUCKET_NAME_PREDICTIONS_OUTPUT = None
+BUCKET_NAME_PREDICTqIONS_OUTPUT = None
 PREDICTIONS_OUTPUT_FILE_NAME = None
 DOCTORS_TO_HASH_FILE_NAME = None
 

@@ -30,11 +30,11 @@ def compute_xW_bins(df, weeks, DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB):
     df_bins = df_bins.rename(columns={'doctors_license': 'merge_id'})
     df_bins = df_bins.rename(columns={'start': 'date'})
 
-    df_doctors_to_hase = get_s3_object(DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB)
-    df_doctors_to_hase = df_doctors_to_hase.rename(columns={'original_id': 'merge_id'})
-    df_doctors_to_hase = df_doctors_to_hase.rename(columns={'id': 'hash'})
+    df_doctors_to_hash = get_s3_object(DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB)
+    df_doctors_to_hash = df_doctors_to_hash.rename(columns={'original_id': 'merge_id'})
+    df_doctors_to_hash = df_doctors_to_hash.rename(columns={'id': 'hash'})
 
-    df_bins_merged = pd.merge(df_bins, df_doctors_to_hase[['merge_id', 'hash']], on='merge_id', how='left')
+    df_bins_merged = pd.merge(df_bins, df_doctors_to_hash[['merge_id', 'hash']], on='merge_id', how='left')
     final_df = df_bins_merged.drop('merge_id', axis=1)
 
     # turn duration into hours
@@ -164,7 +164,7 @@ def test_compute_4_week_bins(df_input, weeks):
 
 
 def compute_averages_dict(df):
-    df['date'] = pd.to_datetime(df['date'])
+    # df['date'] = pd.to_datetime(df['date'])
     df.sort_values(by=['hash', 'date'], inplace=True)
 
     surgeons_dict = {}
@@ -187,7 +187,7 @@ def compute_averages_dict(df):
             # Filter the data for this period
             period_data = surgeon_data[(surgeon_data['date'] > period_start_date) & (surgeon_data['date'] <= last_date)]
 
-            # Check if there is at least one data point in the period
+            # Check if there are enough data points for the period
             if len(period_data) == weeks / 4:
                 # Calculate the average and update the surgeon's dictionary
                 surgeon_dict[period_name] = round(period_data['duration_sum'].mean(), 2)
