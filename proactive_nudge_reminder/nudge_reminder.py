@@ -32,7 +32,7 @@ def send_reminder(event, context):
     update_blocks_status(blocks, headers)
 
     recipients = sorted(request_body['recipients'])
-    link_for_surgeon = create_link(tenant, blocks, request_body['doctorId'])
+    link_for_surgeon = create_link(tenant, blocks, request_body['doctorName'])
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'send-email':
