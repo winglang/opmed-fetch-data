@@ -6,7 +6,8 @@ from datetime import datetime
 import requests
 
 from proactive_nudge_reminder.send_email import send_email
-from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS
+from utils.jwt_utils import generate_jwt, store_jwt
+from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv('URL')
 
@@ -19,6 +20,9 @@ def send_reminder(event, context):
 
     print(f'username: {username}')
 
+    tenant = get_service(event)
+    print(f'tenant: {tenant}')
+
     request_body = json.loads(event['body'])
     blocks = request_body['blocks']
 
@@ -27,13 +31,16 @@ def send_reminder(event, context):
 
     update_blocks_status(blocks, headers)
 
-    link_for_surgeon = create_link(blocks)
+    recipients = sorted(request_body['recipients'])
+    link_for_surgeon = create_link(tenant, blocks, recipients)
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'send-email':
         subject = get_email_subject(blocks)
-        email_content = request_body['content'] + '\n\n' + f'please reply in the provided link\n\n{link_for_surgeon}'
-        send_email(subject=subject, body={'text': email_content}, recipients=request_body['recipients'])
+        email = {
+            'html': request_body['content'] + f'<br/>please reply in the provided link<br/><br/>{link_for_surgeon}'
+        }
+        send_email(subject=subject, body=email, recipients=recipients)
         res = 'sent nudge email'
     else:
         res = f'method not found: {method}'
@@ -58,15 +65,13 @@ def get_email_subject(blocks):
     return subject
 
 
-def generate_token():
-    return 'temp_token'
-
-
-def create_link(blocks):
+def create_link(tenant, blocks, user_id):
     params = {
-        'token': generate_token(),
+        'token': generate_jwt(tenant, user_id),
         'block_ids': [block['blockId'] for block in blocks]
     }
+
+    store_jwt(params['token'], params['block_ids'])
 
     return url + '/block-release?' + urllib.parse.urlencode(params)
 
