@@ -1,6 +1,5 @@
 import os
 from datetime import timezone, datetime, timedelta
-from urllib.parse import parse_qs
 
 import boto3
 import jwt
@@ -9,24 +8,6 @@ symmetric_key = os.getenv('SYMMETRIC_KEY')
 jwt_table_name = os.getenv('JWT_TABLE_NAME')
 
 algorithm = 'HS512'
-
-
-def validate_view_blocks_handler(event, context):
-    request = event['Records'][0]['cf']['request']
-
-    query_params = {k: v[0] for k, v in parse_qs(request['querystring']).items()}
-    jwt = query_params.get('token')
-    jwt_item = get_jwt_from_db(jwt)
-
-    if not jwt_item or not validate_jwt(jwt):
-        return generate_401_response()
-
-    requested_blocks = query_params['block_ids']
-
-    if set(requested_blocks).issubset(jwt_item['blocks_id']):
-        return request
-    else:
-        return generate_403_response()
 
 
 def generate_401_response():

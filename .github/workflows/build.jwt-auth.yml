@@ -1,0 +1,42 @@
+name: Upload JWT Auth Lambda
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - jwt_auth/**
+      - utils/**
+      - .github/workflows/build.jwt-auth.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set branch
+        id: tags
+        run: |
+          if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
+            echo "function=jwt-auth" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
+            echo "function=jwt-auth-dev" >> $GITHUB_OUTPUT
+          else
+            echo "Branch not supported"
+            exit 1
+          fi
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: zip lambda
+        run: zip -r lambda.zip jwt_auth utils
+      - name: Deploy AWS Lambda function
+        uses: yvesgurcan/deploy-lambda-function@v0.0.5
+        with:
+          package: lambda.zip
+          function-name: ${{ steps.tags.outputs.function }}
+          AWS_REGION: us-east-1
+          AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
