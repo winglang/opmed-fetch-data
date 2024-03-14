@@ -57,7 +57,7 @@ def get_service_id_from_cognito_cookies(cookies: str) -> str:
 
 
 def get_username(headers: dict) -> str:
-    if username := headers.get('user-id'):
+    if username := headers.get('user-id', None):
         return username
     cookies = headers.get('cookie')
     try:
@@ -118,7 +118,7 @@ def create_error_response(status_code, error_msg):
 
 
 def get_service(event):
-    if tenant_id := event.get('headers', {}).get('tenant-id'):
+    if tenant_id := event.get('headers', {}).get('tenant-id', None):
         return tenant_id
     try:
         if lowercase_headers(event):
@@ -127,7 +127,7 @@ def get_service(event):
         # Get the list of user groups from the authorizer context
         groups = get_user_groups(event)
 
-        username = get_username(event['headers']['cookie'])
+        username = get_username(event['headers'])
 
         domain = urlparse(event['headers']['referer']).hostname
 
@@ -170,7 +170,7 @@ def get_auth_cookie_data(event):
 
         # Get the list of user groups from the authorizer context
         groups = get_user_groups(event)
-        username = get_username(event['headers']['cookie'])
+        username = get_username(event['headers'])
         exp = get_cookie_exp(event['headers']['cookie'])
         domain = urlparse(event['headers']['referer']).hostname
 

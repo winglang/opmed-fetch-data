@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
-    username = get_username(event['headers']['cookie'])
+    username = get_username(event['headers'])
 
     print(f'username: {username}')
 
