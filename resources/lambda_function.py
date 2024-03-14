@@ -145,6 +145,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         # Retrieve an item
         items = db_accessor.batch_get_item(tenant_id, resource_ids)
         if items:
+            items = [item.get('data', item) for item in items]
             return items[0] if len(items) == 1 else items
         else:
             return None
