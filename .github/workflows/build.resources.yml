@@ -56,7 +56,7 @@ jobs:
       - name: Deploy AWS Lambda function
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
-          package: ${{ steps.tags.outputs.function-jwt-access }}.zip
+          package: ${{ steps.tags.outputs.function }}.zip
           function-name: ${{ steps.tags.outputs.function-jwt-access }}
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
