@@ -132,6 +132,17 @@ class DynamoDBAccessor:
             print(f"Error deleting item from DynamoDB: {e}")
             return None
 
+    def batch_delete_item(self, tenant_id, data_ids: list):
+        try:
+            delete_items = {
+                self.table.table_name: [{'DeleteRequest': {'Key': {'tenant_id': tenant_id, 'data_id': data_id}}} for
+                                        data_id in data_ids]}
+            response = self.dynamodb.batch_write_item(RequestItems=delete_items)
+            return response['ResponseMetadata']['HTTPStatusCode'] == 200
+        except Exception as e:
+            print(f"Error deleting item from DynamoDB: {e}")
+            return None
+
     def list_items_by_tenant(self, tenant_id):
         try:
             response = self.table.query(

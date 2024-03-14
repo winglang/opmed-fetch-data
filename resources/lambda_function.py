@@ -170,27 +170,35 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
 
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
+        if len(resource_ids) == 1:
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0])
         return db_accessor.batch_put_item(tenant_id, internal_resource_ids, data, save_nested=save_nested)
 
     elif http_method == 'PUT':
         # Update an existing item
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
+        if len(resource_ids) == 1:
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0])
         return db_accessor.batch_put_item(tenant_id, resource_ids, data, save_nested=save_nested)
 
     elif http_method == 'PATCH':
         allowed_categories = ["proactive_blocks_status"]
         if category_id not in allowed_categories:
             raise ValueError(f"Unsupported category for PATCH: {category_id}")
+        if len(resource_ids) == 1:
+            return db_accessor.update_item(tenant_id, resource_ids[0], data[0])
         return db_accessor.batch_update_item(tenant_id, resource_ids, data)
 
     elif http_method == 'DELETE':
         # Delete an item
         ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
-        id_deleted = ids_db_accessor.delete_item(tenant_id, resource_id)
+        id_deleted = ids_db_accessor.batch_delete_item(tenant_id, resource_ids)
         if id_deleted is False:
-            raise ValueError(f"Fail to delete internal id for external id. {resource_id}")
-        return db_accessor.delete_item(tenant_id, resource_id) is not None
+            raise ValueError(f"Fail to delete internal id for external id. {resource_ids}")
+        if len(resource_ids) == 1:
+            return db_accessor.delete_item(tenant_id, resource_ids[0])
+        return db_accessor.batch_delete_item(tenant_id, resource_ids) is not None
 
     else:
         raise ValueError(f"Unsupported HTTP method: {http_method}")
