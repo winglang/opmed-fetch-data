@@ -19,6 +19,7 @@ DOMAIN_TO_USER_GROUPS = {
 }
 
 AUTH_HEADERS = {"gmix_serviceid", "referer", "cookie"}
+JWT_HEADERS = {"tenant-id", "user-id"}
 
 
 class Service(Enum):
@@ -55,9 +56,13 @@ def get_service_id_from_cognito_cookies(cookies: str) -> str:
         return ""
 
 
-def get_username(cookies: str) -> str:
+def get_username(headers: dict) -> str:
+    if username := headers.get('user-id'):
+        return username
+    cookies = headers.get('cookie')
     try:
-        cookies_array = [c for c in cookies.split("; ") if "CognitoIdentityServiceProvider" in c and "accessToken" in c]
+        cookies_array = [c for c in cookies.split("; ") if
+                         "CognitoIdentityServiceProvider" in c and "accessToken" in c]
         if len(cookies_array) != 1:
             raise Exception("Invalid number of cookies")
         JWT = cookies_array[0].split("=")[1]
@@ -113,6 +118,8 @@ def create_error_response(status_code, error_msg):
 
 
 def get_service(event):
+    if tenant_id := event.get('headers', {}).get('tenant-id'):
+        return tenant_id
     try:
         if lowercase_headers(event):
             return lowercase_headers(event)
@@ -185,5 +192,6 @@ def lowercase_headers(event):
     event['headers'] = {k.lower(): v for k, v in event['headers'].items()}
 
     # check if all headers are received
-    if AUTH_HEADERS.difference(event['headers']):
-        return {"statusCode": 400, "error": f'missing headers: {AUTH_HEADERS.difference(event["headers"])}'}
+    if AUTH_HEADERS.difference(event['headers']) and JWT_HEADERS.difference(event['headers']):
+        return {"statusCode": 400,
+                "error": f'missing headers: {AUTH_HEADERS.difference(event["headers"])} or {JWT_HEADERS.difference(event["headers"])}'}

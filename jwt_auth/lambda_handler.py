@@ -23,7 +23,7 @@ def validate_view_blocks_handler(event, context):
     if set(requested_blocks).issubset(jwt_item['blocks_id']):
         if 'headers' not in request:
             request['headers'] = {}
-        request['headers']['doctor-id'] = [{'key': 'Doctor-Id', 'value': jwt_item['user_id']}]
+        request['headers']['user-id'] = [{'key': 'Doctor-Id', 'value': jwt_item['user_id']}]
         request['headers']['tenant-id'] = [{'key': 'Tenant-Id', 'value': jwt_item['org_id']}]
         return request
     else:
