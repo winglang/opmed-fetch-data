@@ -6,11 +6,14 @@ from utils.jwt_utils import get_jwt_from_db, validate_jwt, generate_401_response
 def validate_view_blocks_handler(event, context):
     request = event['Records'][0]['cf']['request']
 
+    symmetric_key = request['headers'].pop('symmetric-key')[0]['value']
+    jwt_table_name = request['headers'].pop('JWT_TABLE_NAME')[0]['value']
+
     query_params = {k: v[0] for k, v in parse_qs(request['querystring']).items()}
     jwt = query_params.get('token')
-    jwt_item = get_jwt_from_db(jwt)
+    jwt_item = get_jwt_from_db(jwt, jwt_table_name)
 
-    jwt_payload = validate_jwt(jwt)
+    jwt_payload = validate_jwt(jwt, symmetric_key)
 
     if not jwt_item or not jwt_payload:
         return generate_401_response()

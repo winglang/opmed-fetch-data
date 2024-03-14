@@ -4,9 +4,6 @@ from datetime import timezone, datetime, timedelta
 import boto3
 import jwt
 
-symmetric_key = os.getenv('SYMMETRIC_KEY')
-jwt_table_name = os.getenv('JWT_TABLE_NAME')
-
 algorithm = 'HS512'
 
 
@@ -28,7 +25,7 @@ def generate_403_response():
     }
 
 
-def generate_jwt(tenant_id, user_id):
+def generate_jwt(tenant_id, user_id, symmetric_key=os.getenv('SYMMETRIC_KEY')):
     payload = {
         "user_id": user_id,
         "org_id": tenant_id,
@@ -41,9 +38,9 @@ def generate_jwt(tenant_id, user_id):
     return encoded_jwt
 
 
-def store_jwt(jwt, blocks_id):
+def store_jwt(jwt, blocks_id, table_name=os.getenv('JWT_TABLE_NAME')):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(jwt_table_name)
+    table = dynamodb.Table(table_name)
 
     item = {
         'id': jwt,
@@ -54,9 +51,9 @@ def store_jwt(jwt, blocks_id):
     return table.put_item(Item=item)
 
 
-def get_jwt_from_db(jwt):
+def get_jwt_from_db(jwt, table_name=os.getenv('JWT_TABLE_NAME')):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(jwt_table_name)
+    table = dynamodb.Table(table_name)
 
     try:
         response = table.get_item(Key={'id': jwt})
@@ -65,7 +62,7 @@ def get_jwt_from_db(jwt):
         print(f"Error reading from DynamoDB: {e}")
 
 
-def validate_jwt(token):
+def validate_jwt(token, symmetric_key=os.getenv('SYMMETRIC_KEY')):
     try:
         decoded = jwt.decode(token, symmetric_key, algorithms=[algorithm])
     except Exception as e:
