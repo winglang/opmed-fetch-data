@@ -61,12 +61,16 @@ def lambda_handler(event, context):
         }
 
     else:  # For other cases, perform "rest" operations with the resource id.
-        resource_id = path_splits[5]
+        if path_splits[5] == 'bundle':
+            query_string_parameters = event.get('queryStringParameters', {})
+            resource_ids = query_string_parameters.get('ids', [])
+        else:
+            resource_ids = [path_splits[5]]
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
             data_object = json.loads(event['body'])
         try:
-            result = handle_rest_request(http_method, service, resource_category_id, resource_id, data_object)
+            result = handle_rest_request(http_method, service, resource_category_id, resource_ids, data_object)
             if result:
                 return {
                     'statusCode': 200,
@@ -112,73 +116,89 @@ def get_all_data_for_category(tenant_id, category_id):
     return items
 
 
-def handle_rest_request(http_method, tenant_id, category_id, resource_id, data):
+def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data):
     # Validate input
-    if not tenant_id or not category_id or not resource_id:
+    if not tenant_id or not category_id or not resource_ids:
         raise ValueError("Missing required parameters")
 
-    if resource_id == "mapping":
+    if resource_ids == ["mapping"]:
         return handle_mapping_request(data)
 
     # Initialize the DynamoDB accessor
     table_name = get_table_name(category_id)
     db_accessor = DynamoDBAccessor(table_name)
     internal_to_external_ids_table = os.environ['internal_to_external_ids']
+
+    if type(data) is dict:
+        data = [data]
+
     # Add 'lastUpdated' to your data
     if data is not None:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
-        data['lastUpdated'] = timestamp
+        for item in data:
+            item['lastUpdated'] = timestamp
 
     # Handle different HTTP methods
     if http_method == 'GET':
         # Retrieve an item
-        item = db_accessor.get_item(tenant_id, resource_id)
-        if item is not None:
-            return item['data']
+        items = db_accessor.batch_get_item(tenant_id, resource_ids)
+        if items:
+            return items[0] if len(items) == 1 else items
         else:
             return None
 
     elif http_method == 'POST':
         # Create a new item
         # check that object does not exist before adding.
-        categories_with_hash_id = ["surgeons"]
-        internal_resource_id = generate_sha256_hash(
-            resource_id, SALT) if category_id in categories_with_hash_id else resource_id
-        item = db_accessor.get_item(tenant_id, internal_resource_id)
-        if item is not None:
-            raise FileExistsError(f"Resource already exist: {internal_resource_id}")
+        categories_with_hash_id = ["surgeons", 'proactive_blocks_status']
+        internal_resource_ids = [generate_sha256_hash(
+            resource_id, SALT) for resource_id in
+            resource_ids] if category_id in categories_with_hash_id else resource_ids
+        items = db_accessor.batch_get_item(tenant_id, internal_resource_ids)
+        if items:
+            raise FileExistsError(f"Resource already exist: {internal_resource_ids}")
         # store internal id. TODO: Transaction
         ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
-        id_created = ids_db_accessor.put_item(tenant_id, internal_resource_id, resource_id)
+        id_created = ids_db_accessor.batch_put_item(tenant_id, internal_resource_ids, resource_ids)
         if id_created is False:
-            raise ValueError(f"Fail to create internal id for external id. {internal_resource_id}")
-        data['id'] = internal_resource_id
+            raise ValueError(f"Fail to create internal id for external id. {internal_resource_ids}")
+
+        for internal_resource_id in internal_resource_ids:
+            data['id'] = internal_resource_id
 
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
-        return db_accessor.put_item(tenant_id, internal_resource_id, data, save_nested=save_nested)
+        if len(resource_ids) == 1:
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0])
+        return db_accessor.batch_put_item(tenant_id, internal_resource_ids, data, save_nested=save_nested)
 
     elif http_method == 'PUT':
         # Update an existing item
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
-        return db_accessor.put_item(tenant_id, resource_id, data, save_nested=save_nested)
+        if len(resource_ids) == 1:
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0])
+        return db_accessor.batch_put_item(tenant_id, resource_ids, data, save_nested=save_nested)
 
     elif http_method == 'PATCH':
         allowed_categories = ["proactive_blocks_status"]
         if category_id not in allowed_categories:
             raise ValueError(f"Unsupported category for PATCH: {category_id}")
-        return db_accessor.update_item(tenant_id, resource_id, data)
+        if len(resource_ids) == 1:
+            return db_accessor.update_item(tenant_id, resource_ids[0], data[0])
+        return db_accessor.batch_update_item(tenant_id, resource_ids, data)
 
     elif http_method == 'DELETE':
         # Delete an item
         ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
-        id_deleted = ids_db_accessor.delete_item(tenant_id, resource_id)
+        id_deleted = ids_db_accessor.batch_delete_item(tenant_id, resource_ids)
         if id_deleted is False:
-            raise ValueError(f"Fail to delete internal id for external id. {resource_id}")
-        return db_accessor.delete_item(tenant_id, resource_id) is not None
+            raise ValueError(f"Fail to delete internal id for external id. {resource_ids}")
+        if len(resource_ids) == 1:
+            return db_accessor.delete_item(tenant_id, resource_ids[0])
+        return db_accessor.batch_delete_item(tenant_id, resource_ids) is not None
 
     else:
         raise ValueError(f"Unsupported HTTP method: {http_method}")
