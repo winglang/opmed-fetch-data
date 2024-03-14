@@ -156,17 +156,17 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         internal_resource_ids = [generate_sha256_hash(
             resource_id, SALT) for resource_id in
             resource_ids] if category_id in categories_with_hash_id else resource_ids
-        items = db_accessor.batch_get_item(tenant_id, internal_resource_ids)
+        ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
+        items = ids_db_accessor.batch_get_item(tenant_id, internal_resource_ids)
         if items:
             raise FileExistsError(f"Resource already exist: {internal_resource_ids}")
         # store internal id. TODO: Transaction
-        ids_db_accessor = DynamoDBAccessor(internal_to_external_ids_table)
         id_created = ids_db_accessor.batch_put_item(tenant_id, internal_resource_ids, resource_ids)
         if id_created is False:
             raise ValueError(f"Fail to create internal id for external id. {internal_resource_ids}")
 
-        for internal_resource_id in internal_resource_ids:
-            data['id'] = internal_resource_id
+        for internal_resource_id, data_item in zip(internal_resource_ids, data):
+            data_item['id'] = internal_resource_id
 
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
