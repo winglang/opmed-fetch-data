@@ -1,7 +1,7 @@
 import json
 import os
-import urllib
 from datetime import datetime
+from urllib.parse import urlencode
 
 import requests
 
@@ -68,12 +68,12 @@ def get_email_subject(blocks):
 def create_link(tenant, blocks, user_id):
     params = {
         'token': generate_jwt(tenant, user_id),
-        'block_ids': [block['blockId'] for block in blocks]
+        'ids': [block['blockId'] for block in blocks]
     }
 
     store_jwt(params['token'], params['block_ids'])
 
-    return url + '/block-release?' + urllib.parse.urlencode(params)
+    return url + '/block-release?' + urlencode(params, doseq=True)
 
 
 def update_blocks_status(blocks, headers):
