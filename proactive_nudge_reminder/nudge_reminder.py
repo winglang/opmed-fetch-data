@@ -71,7 +71,7 @@ def create_link(tenant, blocks, user_id):
         'ids': [block['blockId'] for block in blocks]
     }
 
-    store_jwt(params['token'], params['block_ids'])
+    store_jwt(params['token'], params['ids'])
 
     return url + '/block-release?' + urlencode(params, doseq=True)
 
