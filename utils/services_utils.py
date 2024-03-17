@@ -19,7 +19,7 @@ DOMAIN_TO_USER_GROUPS = {
 }
 
 AUTH_HEADERS = {"gmix_serviceid", "referer", "cookie"}
-JWT_HEADERS = {"Tenant-Id", "User-Id"}
+JWT_HEADERS = {"tenant-id", "user-id"}
 
 
 class Service(Enum):
@@ -57,7 +57,7 @@ def get_service_id_from_cognito_cookies(cookies: str) -> str:
 
 
 def get_username(headers: dict) -> str:
-    if username := headers.get('User-Id', None):
+    if username := headers.get('user-id', None):
         return username
     cookies = headers.get('cookie')
     try:
@@ -118,7 +118,7 @@ def create_error_response(status_code, error_msg):
 
 
 def get_service(event):
-    if tenant_id := event.get('headers', {}).get('Tenant-Id', None):
+    if tenant_id := event.get('headers', {}).get('tenant-id', None):
         return tenant_id
     try:
         if lowercase_headers(event):
