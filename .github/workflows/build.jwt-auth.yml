@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: mkdir python
-      - run: pip install -r requirements.txt -t python
+      - run: pip install PyJWT -t python
       - name: zip lambda
         run: zip -r lambda.zip jwt_auth utils python
       - name: Deploy AWS Lambda function
