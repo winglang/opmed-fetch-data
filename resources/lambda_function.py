@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
-    username = get_username(event['headers']['cookie'])
+    username = get_username(event['headers'])
 
     print(f'username: {username}')
 
@@ -31,10 +31,6 @@ def lambda_handler(event, context):
     # Extracting HTTP method and path from the event
     http_method = event['requestContext']['http']['method']
     path = event['requestContext']['http']['path']
-
-    if not path.startswith('/api/v1/resources'):
-        print("Invalid path.")
-        return create_error_response(400, 'Invalid request')
 
     # get the resource category.
     path_splits = path.split('/')

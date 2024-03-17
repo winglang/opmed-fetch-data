@@ -35,7 +35,8 @@ def convert_block_algo_model(block):
                                 block['assistant_name'].split(',') if assistant],
         'hash_anesthetist_name': [anesthetist.split(' - ')[0] for anesthetist in
                                   block['anesthetist_name'].split(',') if anesthetist],
-        'hash_title': generate_sha256_hash(block['title'], SALT),  # Patch: Some tenants send doctors names in the title which we want to hide.
+        'hash_title': generate_sha256_hash(block['title'], SALT),
+        # Patch: Some tenants send doctors names in the title which we want to hide.
         'resourceId': block['resourceId'],
         'id': block['id'],
         'doctor_id': block['doctor_id'],
@@ -96,7 +97,7 @@ def lambda_handler(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
-    username = get_username(event['headers']['cookie'])
+    username = get_username(event['headers'])
 
     print(f'username: {username}')
 
