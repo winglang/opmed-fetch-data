@@ -9,8 +9,8 @@ def validate_view_blocks_handler(event, context):
     symmetric_key = request['headers'].pop('Symmetric-Key')[0]['value']
     jwt_table_name = request['headers'].pop('Jwt-Table-Name')[0]['value']
 
-    query_params = {k: v[0] for k, v in parse_qs(request['querystring']).items()}
-    jwt = query_params.get('token')
+    query_params = parse_qs(request['querystring'])
+    jwt = query_params.get('token')[0]
     jwt_item = get_jwt_from_db(jwt, jwt_table_name)
 
     jwt_payload = validate_jwt(jwt, symmetric_key)
@@ -18,7 +18,7 @@ def validate_view_blocks_handler(event, context):
     if not jwt_item or not jwt_payload:
         return generate_401_response()
 
-    requested_blocks = query_params['block_ids']
+    requested_blocks = query_params['ids']
 
     if set(requested_blocks).issubset(jwt_item['blocks_id']):
         if 'headers' not in request:
