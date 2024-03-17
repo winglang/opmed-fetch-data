@@ -29,9 +29,12 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - run: pip install PyJWT -t jwt_auth
       - name: zip lambda
         run: zip -r lambda.zip jwt_auth utils
+      - run: mkdir python
+      - run: pip install PyJWT -t python
+      - run: cd python
+      - run: zip -ur ../lambda.zip *
       - name: Deploy AWS Lambda function
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
