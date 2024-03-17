@@ -56,7 +56,7 @@ def lambda_handler(event, context):
     else:  # For other cases, perform "rest" operations with the section id.
         # We handle only specific sections.
         valid_sections = ["equipments"]
-        section_id = path_splits[5]
+        section_id = path_splits[4]
         if section_id not in valid_sections:
             return create_error_response(400, 'Invalid request')
         data_object = None
