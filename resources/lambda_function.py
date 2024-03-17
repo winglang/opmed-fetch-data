@@ -168,7 +168,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
         if len(resource_ids) == 1:
-            return db_accessor.put_item(tenant_id, resource_ids[0], data[0])
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0], save_nested=save_nested)
         return db_accessor.batch_put_item(tenant_id, internal_resource_ids, data, save_nested=save_nested)
 
     elif http_method == 'PUT':
@@ -176,7 +176,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
         if len(resource_ids) == 1:
-            return db_accessor.put_item(tenant_id, resource_ids[0], data[0])
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0], save_nested=save_nested)
         return db_accessor.batch_put_item(tenant_id, resource_ids, data, save_nested=save_nested)
 
     elif http_method == 'PATCH':
