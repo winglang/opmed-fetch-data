@@ -68,7 +68,7 @@ def get_email_subject(blocks):
 def create_link(tenant, blocks, user_id):
     params = {
         'token': generate_jwt(tenant, user_id),
-        'ids': [block['blockId'] for block in blocks]
+        'ids': ','.join([block['blockId'] for block in blocks])
     }
 
     store_jwt(params['token'], params['ids'])

@@ -59,7 +59,7 @@ def lambda_handler(event, context):
     else:  # For other cases, perform "rest" operations with the resource id.
         if path_splits[5] == 'bundle':
             query_string_parameters = event.get('queryStringParameters', {})
-            resource_ids = query_string_parameters.get('ids', [])
+            resource_ids = query_string_parameters.get('ids', []).split(',')
         else:
             resource_ids = [path_splits[5]]
         data_object = None
