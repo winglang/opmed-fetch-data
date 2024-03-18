@@ -9,9 +9,9 @@ def validate_view_blocks_handler(event, context):
     symmetric_key = request["headers"].pop("Symmetric-Key")[0]["value"]
 
     query_params = {k: v[0] for k, v in parse_qs(request["querystring"]).items()}
-    jwt_token = query_params.get("token")
+    jwt = query_params.get("token")
 
-    jwt_payload = validate_jwt(jwt_token, symmetric_key)
+    jwt_payload = validate_jwt(jwt, symmetric_key)
 
     if not jwt_payload:
         return generate_401_response()

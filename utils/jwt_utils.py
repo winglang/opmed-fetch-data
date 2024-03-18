@@ -25,17 +25,19 @@ def generate_403_response():
     }
 
 
-def generate_jwt(tenant_id, user_id, block_ids: str, symmetric_key=os.getenv("SYMMETRIC_KEY")):
+def generate_jwt(tenant_id, user_id, block_ids: str | None = None, symmetric_key=os.getenv("SYMMETRIC_KEY")):
     jwt_expiration_days = float(os.getenv("JWT_EXPIRATION_DAYS", 2))
     expired_at = datetime.now() + timedelta(days=jwt_expiration_days)
 
     payload = {
         "user_id": user_id,
         "org_id": tenant_id,
-        "block_ids": block_ids,
-        "exp": expired_at,
-        "iat": datetime.now(timezone.utc),
+        "exp": expired_at.timestamp(),
+        "iat": datetime.now(timezone.utc).timestamp(),
     }
+
+    if block_ids is not None:
+        payload["block_ids"] = block_ids
 
     encoded_jwt = jwt.encode(payload, symmetric_key, algorithm=algorithm)
 
