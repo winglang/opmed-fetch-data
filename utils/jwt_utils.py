@@ -24,7 +24,7 @@ def generate_403_response():
     }
 
 
-def generate_jwt(tenant_id, user_id, block_ids: str | None = None, symmetric_key=os.getenv("SYMMETRIC_KEY")):
+def generate_jwt(tenant_id, user_id, block_ids: str = None, symmetric_key=os.getenv("SYMMETRIC_KEY")):
     jwt_expiration_days = float(os.getenv("JWT_EXPIRATION_DAYS", 2))
     expired_at = datetime.now() + timedelta(days=jwt_expiration_days)
 
