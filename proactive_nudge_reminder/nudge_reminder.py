@@ -1,12 +1,12 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 import requests
 
 from proactive_nudge_reminder.send_email import send_email
-from utils.jwt_utils import generate_jwt, store_jwt
+from utils.jwt_utils import generate_jwt
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv('URL')
@@ -66,13 +66,12 @@ def get_email_subject(blocks):
 
 
 def create_link(tenant, blocks, user_id):
-    block_ids_str = ','.join([block['blockId'] for block in blocks])
+    block_ids: str = ','.join([block['blockId'] for block in blocks])
+    jwt_expiration_days = float(os.getenv('JWT_EXPIRATION_DAYS') or 2)
+    expired_at = int((datetime.now() + timedelta(days=jwt_expiration_days)).timestamp())
     params = {
-        'token': generate_jwt(tenant, user_id),
-        'ids': block_ids_str
+        'token': generate_jwt(tenant, user_id, block_ids, expired_at),
     }
-
-    store_jwt(params['token'], params['ids'])
 
     return url + '/block-release?' + urlencode(params, doseq=True)
 
