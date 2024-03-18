@@ -26,6 +26,9 @@ def send_reminder(event, context):
     request_body = json.loads(event['body'])
     blocks = request_body['blocks']
 
+    for block in blocks:
+        block['doctorName'] = request_body['doctorName']
+
     headers = {key: val for key, val in event.get('headers', {}).items() if
                key.lower() in AUTH_HEADERS}
 
