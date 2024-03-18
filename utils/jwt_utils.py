@@ -25,29 +25,21 @@ def generate_403_response():
     }
 
 
-def generate_jwt(tenant_id, user_id, block_ids: str, expired_at: int, symmetric_key=os.getenv("SYMMETRIC_KEY")):
+def generate_jwt(tenant_id, user_id, block_ids: str, symmetric_key=os.getenv("SYMMETRIC_KEY")):
+    jwt_expiration_days = float(os.getenv("JWT_EXPIRATION_DAYS", 2))
+    expired_at = datetime.now() + timedelta(days=jwt_expiration_days)
+
     payload = {
         "user_id": user_id,
         "org_id": tenant_id,
         "block_ids": block_ids,
-        "exp": expired_at,  # Setting expiration to one day
+        "exp": expired_at,
         "iat": datetime.now(timezone.utc),
     }
 
     encoded_jwt = jwt.encode(payload, symmetric_key, algorithm=algorithm)
 
     return encoded_jwt
-
-
-def get_jwt_from_db(jwt, table_name=os.getenv("JWT_TABLE_NAME")):
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table(table_name)
-
-    try:
-        response = table.get_item(Key={"id": jwt})
-        return response.get("Item")
-    except Exception as e:
-        print(f"Error reading from DynamoDB: {e}")
 
 
 def validate_jwt(token, symmetric_key=os.getenv("SYMMETRIC_KEY")):

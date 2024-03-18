@@ -67,10 +67,8 @@ def get_email_subject(blocks):
 
 def create_link(tenant, blocks, user_id):
     block_ids: str = ','.join([block['blockId'] for block in blocks])
-    jwt_expiration_days = float(os.getenv('JWT_EXPIRATION_DAYS') or 2)
-    expired_at = int((datetime.now() + timedelta(days=jwt_expiration_days)).timestamp())
     params = {
-        'token': generate_jwt(tenant, user_id, block_ids, expired_at),
+        'token': generate_jwt(tenant, user_id, block_ids),
     }
 
     return url + '/block-release?' + urlencode(params, doseq=True)
