@@ -29,8 +29,6 @@ def send_reminder(event, context):
     headers = {key: val for key, val in event.get('headers', {}).items() if
                key.lower() in AUTH_HEADERS}
 
-    update_blocks_status(blocks, headers)
-
     recipients = sorted(request_body['recipients'])
     link_for_surgeon = create_link(tenant, blocks, request_body['doctorName'])
 
@@ -44,6 +42,8 @@ def send_reminder(event, context):
         res = 'sent nudge email'
     else:
         res = f'method not found: {method}'
+
+    update_blocks_status(blocks, headers)
 
     return {
         "statusCode": 200,
@@ -66,9 +66,10 @@ def get_email_subject(blocks):
 
 
 def create_link(tenant, blocks, user_id):
+    block_ids_str = ','.join([block['blockId'] for block in blocks])
     params = {
         'token': generate_jwt(tenant, user_id),
-        'ids': ','.join([block['blockId'] for block in blocks])
+        'ids': block_ids_str
     }
 
     store_jwt(params['token'], params['ids'])

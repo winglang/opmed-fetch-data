@@ -41,11 +41,12 @@ def generate_jwt(tenant_id, user_id, symmetric_key=os.getenv('SYMMETRIC_KEY')):
 def store_jwt(jwt, blocks_id, table_name=os.getenv('JWT_TABLE_NAME')):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
+    jwt_expiration_days = float(os.getenv('JWT_EXPIRATION_DAYS') or 2)
 
     item = {
         'id': jwt,
         'blocks_id': blocks_id,
-        'expired_at': int((datetime.now() + timedelta(days=2)).timestamp())
+        'expired_at': int((datetime.now() + timedelta(days=jwt_expiration_days)).timestamp())
     }
 
     return table.put_item(Item=item)
