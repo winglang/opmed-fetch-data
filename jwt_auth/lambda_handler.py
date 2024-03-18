@@ -16,9 +16,10 @@ def validate_view_blocks_handler(event, context):
     if not jwt_payload:
         return generate_401_response()
 
-    requested_blocks = query_params["ids"].split(",")
+    requested_blocks_ids = query_params.get("ids", "").split(",")
+    jwt_payload_block_ids = jwt_payload.get("block_ids", "").split(",")
 
-    if set(requested_blocks).issubset(jwt_payload["blocks_id"]):
+    if set(requested_blocks_ids).issubset(jwt_payload_block_ids):
         if "headers" not in request:
             request["headers"] = {}
         request["headers"]["User-Id"] = [{"key": "User-Id", "value": jwt_payload["user_id"]}]
