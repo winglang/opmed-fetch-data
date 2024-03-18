@@ -1,7 +1,6 @@
 import os
 from datetime import timezone, datetime, timedelta
 
-import boto3
 import jwt
 
 algorithm = "HS512"
