@@ -101,7 +101,7 @@ def proactive_block_realise(event, context):
         response_body = json.dumps(predicted_blocks, cls=DecimalEncoder)
     else:
         response_body = blocks_predictions_res.text
-    save_to_s3 = event["body"].get("save_to_s3", False)
+    save_to_s3 = event.get("body", {}).get("save_to_s3", False)
     if save_to_s3:
         s3_key = " proactive-block.json"
         bucket_name = os.environ['BUCKET_NAME']
