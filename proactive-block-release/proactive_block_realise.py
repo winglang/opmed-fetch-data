@@ -87,6 +87,24 @@ def proactive_block_realise(event, context):
         response_body = json.dumps(predicted_blocks)
     else:
         response_body = blocks_predictions_res.text
+    save_to_s3 = event["body"].get("save_to_s3", False)
+    if save_to_s3:
+        s3_key = " proactive-block.json"
+        bucket_name = os.environ['BUCKET_NAME']
+        try:
+            s3 = boto3.resource('s3')
+            s3object = s3.Object(bucket_name, s3_key)
+            s3object.put(
+                Body=response_body
+            )
+            s3.put_object_acl(
+                Bucket=bucket_name,
+                Key=s3_key,
+                ACL='authenticated-read'
+            )
+            print("Success: Saved to S3")
+        except Exception as e:
+            print("Error: {}".format(e))
 
     return {
         "statusCode": blocks_predictions_res.status_code,
@@ -112,5 +130,6 @@ if __name__ == '__main__':
     t = time.time()
 
     res = proactive_block_realise(event, None)
+
     print(time.time() - t)
     pass
