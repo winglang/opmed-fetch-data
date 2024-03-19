@@ -30,17 +30,93 @@ class DynamoDBAccessor:
             print(f"Error reading from DynamoDB: {e}")
             return None
 
-    def put_item(self, tenant_id, data_id, data):
+    def batch_get_item(self, tenant_id, data_ids):
+        try:
+            request_items = {
+                self.table.table_name: {
+                    'Keys': [{'tenant_id': tenant_id, 'data_id': data_id} for data_id in data_ids]
+                }
+            }
+            response = self.dynamodb.batch_get_item(RequestItems=request_items)
+            return response['Responses'][self.table.table_name]
+
+        except Exception as e:
+            print(f"Error reading from DynamoDB: {e}")
+            return None
+
+    def put_item(self, tenant_id, data_id, data, save_nested=True):
         try:
             item = {
                 'tenant_id': tenant_id,
                 'data_id': data_id,
-                'data': data  # Assuming the entire JSON object is stored under the 'data' attribute
             }
+            item |= {'data': data} if save_nested else data
             self.table.put_item(Item=item)
             return True
         except Exception as e:
             print(f"Error writing to DynamoDB: {e}")
+            return False
+
+    def batch_put_item(self, tenant_id, data_ids: list, data: list, save_nested=True):
+        try:
+            with self.table.batch_writer() as batch:
+                for data_id, item_data in zip(data_ids, data):
+                    item = {
+                        'tenant_id': tenant_id,
+                        'data_id': data_id,
+                    }
+                    item |= {'data': item_data} if save_nested else item_data
+                    batch.put_item(
+                        Item=item
+                    )
+            return True
+        except Exception as e:
+            print(f"Error writing to DynamoDB: {e}")
+            return False
+
+    def update_item(self, tenant_id, data_id, attribute_updates):
+        try:
+            updated_expression, expression_attribute_values = get_update_params(attribute_updates)
+            res = self.table.update_item(
+                Key={
+                    'tenant_id': tenant_id,
+                    'data_id': data_id
+                },
+                UpdateExpression=updated_expression,
+                ExpressionAttributeValues=expression_attribute_values
+            )
+            return res['ResponseMetadata']['HTTPStatusCode'] == 200
+        except Exception as e:
+            print(f"Error updating item in DynamoDB: {e}")
+            return False
+
+    def batch_update_item(self, tenant_id, data_ids: list, attribute_updates: list):
+
+        updated_expressions, expression_attribute_values = zip(
+            *[get_update_params(attribute_update) for attribute_update in attribute_updates])
+
+        updates = [
+            {
+                'Update': {
+                    'TableName': self.table.table_name,
+                    'Key': {
+                        'tenant_id': tenant_id,
+                        'data_id': data_id
+                    },
+                    'UpdateExpression': updated_expression,
+                    'ExpressionAttributeValues': expression_attribute_value
+                }
+            }
+            for data_id, updated_expression, expression_attribute_value in
+            zip(data_ids, updated_expressions, expression_attribute_values)
+        ]
+        try:
+            response = self.dynamodb.meta.client.transact_write_items(
+                TransactItems=updates
+            )
+            return response['ResponseMetadata']['HTTPStatusCode'] == 200
+        except Exception as e:
+            print(f"Error updating item in DynamoDB: {e}")
             return False
 
     def delete_item(self, tenant_id, data_id):
@@ -52,6 +128,17 @@ class DynamoDBAccessor:
                 }
             )
             return response
+        except Exception as e:
+            print(f"Error deleting item from DynamoDB: {e}")
+            return None
+
+    def batch_delete_item(self, tenant_id, data_ids: list):
+        try:
+            delete_items = {
+                self.table.table_name: [{'DeleteRequest': {'Key': {'tenant_id': tenant_id, 'data_id': data_id}}} for
+                                        data_id in data_ids]}
+            response = self.dynamodb.batch_write_item(RequestItems=delete_items)
+            return response['ResponseMetadata']['HTTPStatusCode'] == 200
         except Exception as e:
             print(f"Error deleting item from DynamoDB: {e}")
             return None
@@ -88,3 +175,23 @@ class DynamoDBAccessor:
         except Exception as e:
             print(f"Error querying DynamoDB: {e}")
             return {}
+
+
+def get_update_params(body):
+    """Given a dictionary we generate an update expression and a dict of values
+    to update a dynamodb table.
+
+    Params:
+        body (dict): Parameters to use for formatting.
+
+    Returns:
+        update expression, dict of values.
+    """
+    update_expression = ["set "]
+    update_values = dict()
+
+    for key, val in body.items():
+        update_expression.append(f" {key} = :{key},")
+        update_values[f":{key}"] = val
+
+    return "".join(update_expression)[:-1], update_values

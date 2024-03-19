@@ -26,16 +26,17 @@ def convert_block_algo_model(block):
     algo_model_block = {
         'start': block['start'],
         'end': block['end'],
-        'hash_nurse_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
+        'hash_nurse_name': [nurse.split(' - ')[0] for nurse in
                             block['nurse_name'].split(',') if
                             nurse],
-        'hash_sanitaire_name': [generate_sha256_hash(sanitaire.split(' - ')[0], SALT) for sanitaire in
+        'hash_sanitaire_name': [sanitaire.split(' - ')[0] for sanitaire in
                                 block['sanitaire_name'].split(',') if sanitaire],
-        'hash_assistant_name': [generate_sha256_hash(assistant.split(' - ')[0], SALT) for assistant in
+        'hash_assistant_name': [assistant.split(' - ')[0] for assistant in
                                 block['assistant_name'].split(',') if assistant],
-        'hash_anesthetist_name': [generate_sha256_hash(nurse.split(' - ')[0], SALT) for nurse in
-                                  block['anesthetist_name'].split(',') if nurse],
+        'hash_anesthetist_name': [anesthetist.split(' - ')[0] for anesthetist in
+                                  block['anesthetist_name'].split(',') if anesthetist],
         'hash_title': generate_sha256_hash(block['title'], SALT),
+        # Patch: Some tenants send doctors names in the title which we want to hide.
         'resourceId': block['resourceId'],
         'id': block['id'],
         'doctor_id': block['doctor_id'],
@@ -46,11 +47,11 @@ def convert_block_algo_model(block):
     return algo_model_block
 
 
-def convert_task_algo_model(task, i):
+def convert_task_algo_model(task, i, parent_block):
     task = {k: v or '' for k, v in task.items()}
     algo_model_task = {
-        'start_time': task['start'],
-        'end_time': task['end'],
+        'start': task['start'],
+        'end': task['end'],
         'hash_doc_name': generate_sha256_hash(task['doc_name'], SALT),
         'incrementalNumber': i,
         'resourceId': task['resourceId'],
@@ -64,7 +65,10 @@ def convert_task_algo_model(task, i):
         'type': task['procedure']['current'][0]['surgery_name'].split(' > ')[-1],
         'patient_age': task['patient_age'],
         'anesthesia': task['anesthesia'],
-        'resources': [],
+        'resources_ids': {
+            resource: parent_block.get(f'hash_{resource}_name') for resource in
+            ['nurse', 'sanitaire', 'assistant', 'anesthetist'] if parent_block.get(f'hash_{resource}_name')
+        },
         'xray_type': task.get('xray_type'),
         'xray_type_value': task.get('xray_type_value'),
         'tee_request': task.get('tee_request'),
@@ -78,11 +82,12 @@ def convert_task_algo_model(task, i):
 
 
 def convert_to_algo_model(fetch_data: list):
-    blocks = [convert_block_algo_model(block) for block in fetch_data if is_block(block)]
-    tasks = [convert_task_algo_model(task, i) for i, task in enumerate(fetch_data) if is_task(task)]
+    blocks = {block['id']: convert_block_algo_model(block) for block in fetch_data if is_block(block)}
+    tasks = [convert_task_algo_model(task, i, blocks[task['parent_block_id']]) for i, task in enumerate(fetch_data) if
+             is_task(task)]
 
     fetch_data = {
-        'blocks': blocks,
+        'blocks': list(blocks.values()),
         'tasks': tasks
     }
     return fetch_data
@@ -92,7 +97,7 @@ def lambda_handler(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
-    username = get_username(event['headers']['cookie'])
+    username = get_username(event['headers'])
 
     print(f'username: {username}')
 

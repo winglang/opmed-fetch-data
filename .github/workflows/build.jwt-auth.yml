@@ -1,4 +1,4 @@
-name: Upload Fetch Lambda
+name: Upload JWT Auth Lambda
 
 on:
   push:
@@ -6,10 +6,9 @@ on:
       - main
       - develop
     paths:
-      - fetch/**
+      - jwt_auth/**
       - utils/**
-      - connectors/**
-      - .github/workflows/build.fetch.yml
+      - .github/workflows/build.jwt-auth.yml
 
 jobs:
   deploy:
@@ -19,9 +18,9 @@ jobs:
         id: tags
         run: |
           if [[ ${{ github.ref }} == "refs/heads/main" ]]; then
-            echo "function=fetch-data" >> $GITHUB_OUTPUT
+            echo "function=jwt-auth" >> $GITHUB_OUTPUT
           elif [[ ${{ github.ref }} == "refs/heads/develop" ]]; then
-            echo "function=fetch-data-dev" >> $GITHUB_OUTPUT
+            echo "function=jwt-auth-dev" >> $GITHUB_OUTPUT
           else
             echo "Branch not supported"
             exit 1
@@ -29,10 +28,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      - run: pip install -r requirements.txt
+          python-version: '3.12'
       - name: zip lambda
-        run: zip -r lambda.zip fetch utils connectors
+        run: zip -r lambda.zip jwt_auth utils
+      - run: mkdir python
+      - run: pip install PyJWT -t python
+      - run: cd python && zip -ur ../lambda.zip *
       - name: Deploy AWS Lambda function
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
