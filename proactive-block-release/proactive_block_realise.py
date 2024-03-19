@@ -3,6 +3,7 @@ import json
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 
 import boto3
 import requests
@@ -65,8 +66,13 @@ def proactive_block_realise(event, context):
     tenant = get_service(event)
     print(f'tenant: {tenant}')
 
+    default_from_value = (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d')  # Today + 28 days
+    default_to_value = (datetime.now() + timedelta(days=31)).strftime('%Y-%m-%d')  # Today + 28 days
     queryStringParameters = {key: val for key, val in event.get('queryStringParameters', {}).items() if
                              key in ['from', 'to']}
+    queryStringParameters['from'] = queryStringParameters.get('from', default_from_value)
+    queryStringParameters['to'] = queryStringParameters.get('to', default_to_value)
+
     headers = {key: val for key, val in event.get('headers', {}).items() if
                key.lower() in AUTH_HEADERS}
 
