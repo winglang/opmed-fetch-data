@@ -1,4 +1,4 @@
-name: Upload Lambda
+name: Upload Proactive Blocks Lambda
 
 on:
   push:
