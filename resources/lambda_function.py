@@ -57,14 +57,25 @@ def lambda_handler(event, context):
         }
 
     else:  # For other cases, perform "rest" operations with the resource id.
+        query_string_parameters = event.get('queryStringParameters', {})
+        resource_ids = query_string_parameters.get('ids').split(',') if 'ids' in query_string_parameters else []
         if path_splits[5] == 'bundle':
-            query_string_parameters = event.get('queryStringParameters', {})
-            resource_ids = query_string_parameters.get('ids', []).split(',')
+            if not resource_ids:
+                return create_error_response(400, 'Invalid request')
         else:
+            if resource_ids:
+                return create_error_response(400, 'Invalid request')
             resource_ids = [path_splits[5]]
+
         data_object = None
         if event is not None and "body" in event and event["body"] is not None:
             data_object = json.loads(event['body'])
+        if type(data_object) is dict:
+            data_object = [data_object]
+
+        if http_method in ['POST', 'PUT', 'PATCH']:
+            if len(resource_ids) != len(data_object):
+                create_error_response(400, 'Invalid request')
         try:
             result = handle_rest_request(http_method, service, resource_category_id, resource_ids, data_object)
             if result:
@@ -124,9 +135,6 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
     table_name = get_table_name(category_id)
     db_accessor = DynamoDBAccessor(table_name)
     internal_to_external_ids_table = os.environ['internal_to_external_ids']
-
-    if type(data) is dict:
-        data = [data]
 
     # Add 'lastUpdated' to your data
     if data is not None:
