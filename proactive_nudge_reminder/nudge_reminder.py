@@ -38,7 +38,7 @@ def send_reminder(event, context):
     if method == "send-email":
         subject = get_email_subject(blocks)
         email = {
-            "html": request_body["content"] + f"<br/>please reply in the provided link<br/><br/>{link_for_surgeon}"
+            "html": request_body["content"] + f"<br/>please reply in this <a href={link_for_surgeon}>link</a>"
         }
         send_email(subject=subject, body=email, recipients=recipients)
         res = "sent nudge email"
