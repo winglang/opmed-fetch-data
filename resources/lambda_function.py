@@ -42,6 +42,8 @@ def lambda_handler(event, context):
     valid_categories = ["surgeons", "nurses", "anesthesiologists", "proactive_blocks_status"]
     resource_category_id = path_splits[4]
     if resource_category_id not in valid_categories:
+        print(
+            f"Invalid requests. resource_category_id: {resource_category_id} was given. Valid categories: {valid_categories}")
         return create_error_response(400, 'Invalid request')
 
     # Check if the method is GET and the path is /api/v1/resources/<category_id> - list all objects.
@@ -61,9 +63,11 @@ def lambda_handler(event, context):
         resource_ids = query_string_parameters.get('ids').split(',') if 'ids' in query_string_parameters else []
         if path_splits[5] == 'bundle':
             if not resource_ids:
+                print(f"Invalid request. Requests bundle but didn't provide ids")
                 return create_error_response(400, 'Invalid request')
         else:
             if resource_ids:
+                print(f"Invalid request. Provide multiple ids but didn't request bundle")
                 return create_error_response(400, 'Invalid request')
             resource_ids = [path_splits[5]]
 
@@ -75,6 +79,9 @@ def lambda_handler(event, context):
 
         if http_method in ['POST', 'PUT', 'PATCH']:
             if len(resource_ids) != len(data_object):
+                print(
+                    f"Invalid request. Mismatch between resource_ids and data_object. "
+                    f"Requested {len(resource_ids)} ids but sent {len(data_object)} objects")
                 create_error_response(400, 'Invalid request')
         try:
             result = handle_rest_request(http_method, service, resource_category_id, resource_ids, data_object)
