@@ -36,7 +36,7 @@ def send_reminder(event, context):
 
     method = event["path"].rsplit("/", 1)[-1]
     if method == "send-email":
-        subject = get_email_subject(blocks)
+        subject = f"Request for unused block time release"
         email = {
             "html": request_body["content"] + f"<br/>please reply in this <a href={link_for_surgeon}>link</a>"
         }
@@ -48,19 +48,6 @@ def send_reminder(event, context):
     update_blocks_status(blocks, headers)
 
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": res}
-
-
-def get_email_subject(blocks):
-    days = [
-        datetime.strftime(date, "%b %d, %Y")
-        for date in sorted({datetime.fromisoformat(block["start"]) for block in blocks})
-    ]
-    if len(days) > 1:
-        days = ", ".join(days[:-1]) + " and " + days[-1]
-    else:
-        days = days[0]
-    subject = f"Request for Adjusted Surgery Duration on {days}"
-    return subject
 
 
 def create_link(tenant, blocks, user_id):
