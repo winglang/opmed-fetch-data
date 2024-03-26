@@ -14,7 +14,7 @@ from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, 
 url = os.getenv('URL')
 blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
 
-BLOCK_FIELDS_TO_RETURN = ['lastUpdated', 'releaseStatus', 'acceptedHours']
+BLOCK_FIELDS_TO_RETURN = ['lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease']
 
 
 class DecimalEncoder(json.JSONEncoder):
