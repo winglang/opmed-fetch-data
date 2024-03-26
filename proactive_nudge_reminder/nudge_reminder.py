@@ -10,6 +10,7 @@ from utils.jwt_utils import generate_jwt
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv("URL")
+url_surgeon_app = os.getenv("URL_SURGEON_APP")
 
 
 def send_reminder(event, context):
@@ -54,7 +55,7 @@ def create_link(tenant, blocks, user_id):
     block_ids: str = ",".join([block["blockId"] for block in blocks])
     params = {"token": generate_jwt(tenant, user_id, block_ids), "ids": block_ids}
 
-    return url + "/block-release?" + urlencode(params, doseq=True)
+    return url_surgeon_app + "?" + urlencode(params, doseq=True)
 
 
 def update_blocks_status(blocks, headers):
