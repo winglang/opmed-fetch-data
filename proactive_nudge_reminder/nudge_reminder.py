@@ -38,17 +38,13 @@ def send_reminder(event, context):
 
     recipients = sorted(request_body["recipients"])
     link_for_surgeon = create_link(tenant, blocks, doctor_name)
+    text = request_body["content"]
 
     method = event["path"].rsplit("/", 1)[-1]
     if method == "send-email":
         subject = f"Request for unused block time release"
         email = {
-            "html": "<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />" + request_body["content"] + f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the attached link on "
-                                              f"<a href={link_for_surgeon}>Opmed.ai</a><br/>"
-                                              f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>"
-                                              f"Thank you for your cooperation and understanding.<br/><br/>"
-                                              f"Best regards,<br/>"
-                                              f"{hospital_name} Perioperative Leadership Team"
+            "html": get_email_content(text, doctor_name, link_for_surgeon, hospital_name)
         }
         send_email(subject=subject, body=email, recipients=recipients)
         res = "sent nudge email"
@@ -59,6 +55,17 @@ def send_reminder(event, context):
 
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": res}
 
+
+def get_email_content(content, doctor_name, link, hospital_name):
+    return (
+        f"<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />{content}"
+        f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the attached link on "
+        f"<a href={link}>Opmed.ai</a><br/>"
+        f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>"
+        f"Thank you for your cooperation and understanding.<br/><br/>"
+        f"Best regards,<br/>"
+        f"{hospital_name} Perioperative Leadership Team"
+    )
 
 def create_link(tenant, blocks, user_id):
     block_ids: str = ",".join([block["blockId"] for block in blocks])
