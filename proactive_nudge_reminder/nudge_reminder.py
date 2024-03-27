@@ -18,6 +18,9 @@ def send_reminder(event, context):
         return lowercase_headers(event)
 
     username = get_username(event["headers"])
+    hospital_name = event['headers'].get('gmix_serviceid',"Hospital").split("-")[0].upper()
+
+
 
     print(f"username: {username}")
 
@@ -26,6 +29,7 @@ def send_reminder(event, context):
 
     request_body = json.loads(event["body"])
     blocks = request_body["blocks"]
+    doctor_name = request_body["doctorName"]
 
     for block in blocks:
         block["doctorName"] = request_body["doctorName"]
@@ -33,13 +37,18 @@ def send_reminder(event, context):
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
     recipients = sorted(request_body["recipients"])
-    link_for_surgeon = create_link(tenant, blocks, request_body["doctorName"])
+    link_for_surgeon = create_link(tenant, blocks, doctor_name)
 
     method = event["path"].rsplit("/", 1)[-1]
     if method == "send-email":
         subject = f"Request for unused block time release"
         email = {
-            "html": request_body["content"] + f"<br/>please reply in this <a href={link_for_surgeon}>link</a>"
+            "html": "<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />" + request_body["content"] + f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the attached link on "
+                                              f"<a href={link_for_surgeon}>Opmed.ai</a><br/>"
+                                              f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>"
+                                              f"Thank you for your cooperation and understanding.<br/><br/>"
+                                              f"Best regards,<br/>"
+                                              f"{hospital_name} Perioperative Leadership Team"
         }
         send_email(subject=subject, body=email, recipients=recipients)
         res = "sent nudge email"
