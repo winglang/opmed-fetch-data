@@ -42,6 +42,13 @@ def lambda_handler(event, context):
     if method == 'get-list-cache':
         method = 'alternative-plans'
 
+    try:
+        if event['queryStringParameters']['allocations']:
+            method = 'block-allocation'
+    except Exception as e:
+        print("error getting queryStringParameters", e)
+        method = 'alternative-plans'
+
     objects_list = get_list_by_service(f'lambda/{service}/{method}/')
 
     class DateEncoder(json.JSONEncoder):
