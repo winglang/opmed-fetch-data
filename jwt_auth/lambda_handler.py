@@ -8,7 +8,7 @@ def validate_view_blocks_handler(event, context):
 
     print(request)
 
-    symmetric_key = request["headers"].pop("Symmetric-Key")[0]["value"]
+    symmetric_key = 'awap1!2@3#4$'
 
     query_params = {k: v[0] for k, v in parse_qs(request["querystring"]).items()}
     jwt = query_params.get("token")
@@ -18,7 +18,7 @@ def validate_view_blocks_handler(event, context):
     if not jwt_payload:
         return generate_401_response()
 
-    requested_blocks_ids = query_params.get("ids", "").split(",")
+    requested_blocks_ids = query_params.get("ids").split(",") if "ids" in query_params else []
     jwt_payload_block_ids = jwt_payload.get("block_ids", "").split(",")
 
     if set(requested_blocks_ids).issubset(jwt_payload_block_ids):
