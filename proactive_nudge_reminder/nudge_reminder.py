@@ -18,9 +18,7 @@ def send_reminder(event, context):
         return lowercase_headers(event)
 
     username = get_username(event["headers"])
-    hospital_name = event['headers'].get('gmix_serviceid',"Hospital").split("-")[0].upper()
-
-
+    hospital_name = event['headers'].get('gmix_serviceid', "Hospital").split("-")[0].upper()
 
     print(f"username: {username}")
 
@@ -30,14 +28,16 @@ def send_reminder(event, context):
     request_body = json.loads(event["body"])
     blocks = request_body["blocks"]
     doctor_name = request_body["doctorName"]
+    doctor_id = request_body["doctorId"]
 
     for block in blocks:
         block["doctorName"] = request_body["doctorName"]
+        block["doctorId"] = request_body["doctorId"]
 
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
     recipients = sorted(request_body["recipients"])
-    link_for_surgeon = create_link(tenant, blocks, doctor_name)
+    link_for_surgeon = create_link(tenant, blocks, doctor_name, doctor_id)
     text = request_body["content"]
 
     method = event["path"].rsplit("/", 1)[-1]
@@ -67,9 +67,10 @@ def get_email_content(content, doctor_name, link, hospital_name):
         f"{hospital_name} Perioperative Leadership Team"
     )
 
-def create_link(tenant, blocks, user_id):
+
+def create_link(tenant, blocks, user_id, doctor_id):
     block_ids: str = ",".join([block["blockId"] for block in blocks])
-    params = {"token": generate_jwt(tenant, user_id, block_ids), "ids": block_ids}
+    params = {"token": generate_jwt(tenant, user_id, block_ids, doctor_id), "ids": block_ids}
 
     return url_surgeon_app + "?" + urlencode(params, doseq=True)
 
