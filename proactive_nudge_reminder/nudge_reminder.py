@@ -59,8 +59,8 @@ def send_reminder(event, context):
 def get_email_content(content, doctor_name, link, hospital_name):
     return (
         f"<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />{content}"
-        f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the attached link on "
-        f"<a href={link}>Opmed.ai</a><br/>"
+        f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the "
+        f"attached <a href={link}>link</a> on Opmed.ai <br/>"
         f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>"
         f"Thank you for your cooperation and understanding.<br/><br/>"
         f"Best regards,<br/>"
