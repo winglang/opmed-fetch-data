@@ -84,6 +84,8 @@ def lambda_handler(event, context):
                     f"Requested {len(resource_ids)} ids but sent {len(data_object)} objects")
                 create_error_response(400, 'Invalid request')
         try:
+            if resource_ids == ["filterByField"]:
+                data_object = username
             result = handle_rest_request(http_method, service, resource_category_id, resource_ids, data_object)
             if result:
                 return {
@@ -144,7 +146,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
     internal_to_external_ids_table = os.environ['internal_to_external_ids']
 
     # Add 'lastUpdated' to your data
-    if data is not None:
+    if data is not None and resource_ids != ["filterByField"]:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
@@ -153,13 +155,16 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
 
     # Handle different HTTP methods
     if http_method == 'GET':
-        # Retrieve an item
-        items = db_accessor.batch_get_item(tenant_id, resource_ids)
-        if items:
-            items = [item.get('data', item) for item in items]
-            return items[0] if len(items) == 1 else items
+        if resource_ids == ["filterByField"]:
+            return db_accessor.filter_by_field(tenant_id, "doctorId", data)
         else:
-            return None
+            # Retrieve an item
+            items = db_accessor.batch_get_item(tenant_id, resource_ids)
+            if items:
+                items = [item.get('data', item) for item in items]
+                return items[0] if len(items) == 1 else items
+            else:
+                return None
 
     elif http_method == 'POST':
         # Create a new item
