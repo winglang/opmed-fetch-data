@@ -1,7 +1,7 @@
 import os
 
 import boto3
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import Key
 
 
 class DynamoDBAccessor:
@@ -53,7 +53,7 @@ class DynamoDBAccessor:
                 IndexName=field_name,
             )
 
-            return response
+            return response['Items']
 
         except Exception as e:
             print(f"Error reading from DynamoDB: {e}")

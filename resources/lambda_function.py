@@ -61,6 +61,7 @@ def lambda_handler(event, context):
     else:  # For other cases, perform "rest" operations with the resource id.
         query_string_parameters = event.get('queryStringParameters', {})
         resource_ids = query_string_parameters.get('ids').split(',') if 'ids' in query_string_parameters else []
+
         if path_splits[5] == 'bundle':
             if not resource_ids:
                 print(f"Invalid request. Requests bundle but didn't provide ids")
@@ -156,15 +157,15 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
     # Handle different HTTP methods
     if http_method == 'GET':
         if resource_ids == ["filterByField"]:
-            return db_accessor.filter_by_field(tenant_id, "doctorId", data)
+            items = db_accessor.filter_by_field(tenant_id, "doctorId", data)
         else:
             # Retrieve an item
             items = db_accessor.batch_get_item(tenant_id, resource_ids)
-            if items:
-                items = [item.get('data', item) for item in items]
-                return items[0] if len(items) == 1 else items
-            else:
-                return None
+        if items:
+            items = [item.get('data', item) for item in items]
+            return items[0] if len(items) == 1 else items
+        else:
+            return None
 
     elif http_method == 'POST':
         # Create a new item
