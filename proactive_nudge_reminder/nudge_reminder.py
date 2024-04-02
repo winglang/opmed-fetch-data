@@ -31,8 +31,8 @@ def send_reminder(event, context):
     doctor_id = request_body["doctorId"]
 
     for block in blocks:
-        block["doctorName"] = request_body["doctorName"]
-        block["doctorId"] = request_body["doctorId"]
+        block["doctorName"] = doctor_name
+        block["doctorId"] = doctor_id
 
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
