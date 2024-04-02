@@ -61,6 +61,7 @@ def lambda_handler(event, context):
     else:  # For other cases, perform "rest" operations with the resource id.
         query_string_parameters = event.get('queryStringParameters', {})
         resource_ids = query_string_parameters.get('ids').split(',') if 'ids' in query_string_parameters else []
+
         if path_splits[5] == 'bundle':
             if not resource_ids:
                 print(f"Invalid request. Requests bundle but didn't provide ids")
@@ -84,6 +85,8 @@ def lambda_handler(event, context):
                     f"Requested {len(resource_ids)} ids but sent {len(data_object)} objects")
                 create_error_response(400, 'Invalid request')
         try:
+            if resource_ids == ["filterByField"]:
+                data_object = username
             result = handle_rest_request(http_method, service, resource_category_id, resource_ids, data_object)
             if result:
                 return {
@@ -144,7 +147,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
     internal_to_external_ids_table = os.environ['internal_to_external_ids']
 
     # Add 'lastUpdated' to your data
-    if data is not None:
+    if data is not None and resource_ids != ["filterByField"]:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
@@ -153,8 +156,11 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
 
     # Handle different HTTP methods
     if http_method == 'GET':
-        # Retrieve an item
-        items = db_accessor.batch_get_item(tenant_id, resource_ids)
+        if resource_ids == ["filterByField"]:
+            items = db_accessor.filter_by_field(tenant_id, "doctorId", data)
+        else:
+            # Retrieve an item
+            items = db_accessor.batch_get_item(tenant_id, resource_ids)
         if items:
             items = [item.get('data', item) for item in items]
             return items[0] if len(items) == 1 else items

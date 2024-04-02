@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from boto3.dynamodb.conditions import Key
 
 
 class DynamoDBAccessor:
@@ -39,6 +40,20 @@ class DynamoDBAccessor:
             }
             response = self.dynamodb.batch_get_item(RequestItems=request_items)
             return response['Responses'][self.table.table_name]
+
+        except Exception as e:
+            print(f"Error reading from DynamoDB: {e}")
+            return None
+
+    def filter_by_field(self, tenant_id, field_name, field_value):
+        try:
+            key_condition = Key('tenant_id').eq(tenant_id) & Key(field_name).eq(field_value)
+            response = self.table.query(
+                KeyConditionExpression=key_condition,
+                IndexName=field_name,
+            )
+
+            return response['Items']
 
         except Exception as e:
             print(f"Error reading from DynamoDB: {e}")
