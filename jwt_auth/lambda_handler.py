@@ -8,7 +8,7 @@ def validate_view_blocks_handler(event, context):
 
     print(request)
 
-    symmetric_key = 'awap1!2@3#4$'
+    symmetric_key = request["headers"].pop("Symmetric-Key")[0]["value"]
 
     query_params = {k: v[0] for k, v in parse_qs(request["querystring"]).items()}
     jwt = query_params.get("token")
