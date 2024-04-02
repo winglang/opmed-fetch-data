@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import requests
 
 from proactive_nudge_reminder.send_email import send_email
+from proactive_nudge_reminder.send_sms import send_sms
 from utils.jwt_utils import generate_jwt
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
@@ -36,18 +37,25 @@ def send_reminder(event, context):
 
     recipients = sorted(request_body["recipients"])
     link_for_surgeon = create_link(tenant, blocks, doctor_name)
-    text = request_body["content"]
+    nudge_content = request_body["content"]
 
     method = event["path"].rsplit("/", 1)[-1]
-    if method == "send-email":
-        subject = f"Request for unused block time release"
-        email = {
-            "html": get_email_content(text, doctor_name, link_for_surgeon, hospital_name)
-        }
-        send_email(subject=subject, body=email, recipients=recipients)
-        res = "sent nudge email"
-    else:
-        res = f"method not found: {method}"
+    match method:
+        case "send-email":
+            subject = f"Request for unused block time release"
+            email = {
+                "html": get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
+            }
+            send_email(subject=subject, body=email, recipients=recipients)
+            res = "sent nudge email"
+        case "send-sms":
+            sms_txt = get_sms_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
+            send_sms(recipients[0], sms_txt, sender_id=hospital_name)
+            res = "sent nudge sms"
+
+        case _:
+            return {"statusCode": 400, "headers": {"Content-Type": "application/json"},
+                    "body": f"method not found: {method}"}
 
     update_blocks_status(blocks, headers)
 
@@ -62,6 +70,18 @@ def get_email_content(content, doctor_name, link, hospital_name):
         f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>"
         f"Thank you for your cooperation and understanding.<br/><br/>"
         f"Best regards,<br/>"
+        f"{hospital_name} Perioperative Leadership Team"
+    )
+
+
+def get_sms_content(content, doctor_name, link, hospital_name):
+    return (
+        f"{content}"
+        f"Dear Dr.{doctor_name}, We hope this message finds you well. We kindly request your assistance in releasing your block time and providing your approval via this link "
+        f"{link} on Opmed.ai "
+        f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources\n"
+        f"Thank you for your cooperation and understanding.\n"
+        f"Best regards,\n"
         f"{hospital_name} Perioperative Leadership Team"
     )
 
