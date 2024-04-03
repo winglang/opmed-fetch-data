@@ -42,6 +42,9 @@ def lambda_handler(event, context):
     if method == 'get-list-cache':
         method = 'alternative-plans'
 
+    if event.get('queryStringParameters', {}) and event.get('queryStringParameters', {}).get('allocations', False):
+        method = 'block-allocation'
+
     objects_list = get_list_by_service(f'lambda/{service}/{method}/')
 
     class DateEncoder(json.JSONEncoder):

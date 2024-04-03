@@ -10,6 +10,7 @@ from utils.jwt_utils import generate_jwt
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv("URL")
+url_surgeon_app = os.getenv("URL_SURGEON_APP")
 
 
 def send_reminder(event, context):
@@ -17,6 +18,7 @@ def send_reminder(event, context):
         return lowercase_headers(event)
 
     username = get_username(event["headers"])
+    hospital_name = event['headers'].get('gmix_serviceid', "Hospital").split("-")[0].upper()
 
     print(f"username: {username}")
 
@@ -25,20 +27,24 @@ def send_reminder(event, context):
 
     request_body = json.loads(event["body"])
     blocks = request_body["blocks"]
+    doctor_name = request_body["doctorName"]
+    doctor_id = request_body["doctorId"]
 
     for block in blocks:
-        block["doctorName"] = request_body["doctorName"]
+        block["doctorName"] = doctor_name
+        block["doctorId"] = doctor_id
 
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
     recipients = sorted(request_body["recipients"])
-    link_for_surgeon = create_link(tenant, blocks, request_body["doctorName"])
+    link_for_surgeon = create_link(tenant, blocks, doctor_id)
+    text = request_body["content"]
 
     method = event["path"].rsplit("/", 1)[-1]
     if method == "send-email":
-        subject = get_email_subject(blocks)
+        subject = f"Request for unused block time release"
         email = {
-            "html": request_body["content"] + f"<br/>please reply in the provided link<br/><br/>{link_for_surgeon}"
+            "html": get_email_content(text, doctor_name, link_for_surgeon, hospital_name)
         }
         send_email(subject=subject, body=email, recipients=recipients)
         res = "sent nudge email"
@@ -50,24 +56,23 @@ def send_reminder(event, context):
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": res}
 
 
-def get_email_subject(blocks):
-    days = [
-        datetime.strftime(date, "%b %d, %Y")
-        for date in sorted({datetime.fromisoformat(block["start"]) for block in blocks})
-    ]
-    if len(days) > 1:
-        days = ", ".join(days[:-1]) + " and " + days[-1]
-    else:
-        days = days[0]
-    subject = f"Request for Adjusted Surgery Duration on {days}"
-    return subject
+def get_email_content(content, doctor_name, link, hospital_name):
+    return (
+        f"<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />{content}"
+        f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the "
+        f"attached <a href={link}>link</a> on Opmed.ai <br/>"
+        f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>"
+        f"Thank you for your cooperation and understanding.<br/><br/>"
+        f"Best regards,<br/>"
+        f"{hospital_name} Perioperative Leadership Team"
+    )
 
 
 def create_link(tenant, blocks, user_id):
     block_ids: str = ",".join([block["blockId"] for block in blocks])
     params = {"token": generate_jwt(tenant, user_id, block_ids), "ids": block_ids}
 
-    return url + "/block-release?" + urlencode(params, doseq=True)
+    return url_surgeon_app + "?" + urlencode(params, doseq=True)
 
 
 def update_blocks_status(blocks, headers):
