@@ -59,14 +59,20 @@ class DynamoDBAccessor:
             print(f"Error reading from DynamoDB: {e}")
             return None
 
-    def put_item(self, tenant_id, data_id, data, save_nested=True):
+    def put_item(self, tenant_id, data_id, data, save_nested=True, metadata=None):
         try:
             item = {
                 'tenant_id': tenant_id,
                 'data_id': data_id,
             }
+
             item |= {'data': data} if save_nested else data
+
+            if metadata:
+                item |= {'metadata': metadata}
+
             self.table.put_item(Item=item)
+
             return True
         except Exception as e:
             print(f"Error writing to DynamoDB: {e}")

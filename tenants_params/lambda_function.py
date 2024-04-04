@@ -105,12 +105,12 @@ def handle_rest_request(http_method, tenant_id, section_id, data):
     table_name = get_table_name()
     db_accessor = DynamoDBAccessor(table_name)
 
-    # Add 'lastUpdated' to your data
+    metadata = {}
     if data is not None:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
-        data['lastUpdated'] = timestamp
+        metadata['lastUpdated'] = timestamp
 
     # Handle different HTTP methods
     if http_method == 'GET':
@@ -127,7 +127,7 @@ def handle_rest_request(http_method, tenant_id, section_id, data):
 
     elif http_method == 'PUT':
         # Update an existing item
-        return db_accessor.put_item(tenant_id, section_id, data)
+        return db_accessor.put_item(tenant_id, section_id, data, metadata=metadata)
 
     elif http_method == 'DELETE':
         # Delete an item is not supported.
