@@ -50,6 +50,8 @@ jobs:
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: zip lambda
+        run: zip -r get-file-cache.zip get_file utils
       - name: Deploy to S3 prod account
         uses: hkusu/s3-upload-action@v2
         with:
@@ -57,17 +59,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           aws-region: us-east-1
           aws-bucket: opmed-tf
-          file-path: ${{ steps.tags.outputs.function }}
+          file-path: get-file-cache
           destination-dir: /
           bucket-root: /
       - name: Deploy AWS Lambda function to prod account
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
-          package: lambda.zip
+          package: get-file-cache.zip
           function-name: ${{ steps.tags.outputs.function }}
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+      - name: zip lambda
+        run: zip -r get-file.zip get_file utils
       - name: Deploy to S3 prod account
         uses: hkusu/s3-upload-action@v2
         with:
@@ -75,13 +79,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           aws-region: us-east-1
           aws-bucket: opmed-tf
-          file-path: ${{ steps.tags.outputs.function-cache }}
+          file-path: get-file
           destination-dir: /
           bucket-root: /
       - name: Deploy AWS Lambda function to prod account
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
-          package: lambda.zip
+          package: get-file.zip
           function-name: ${{ steps.tags.outputs.function-cache }}
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
