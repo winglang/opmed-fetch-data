@@ -9,7 +9,7 @@ from utils.services_utils import get_service, handle_error_response, lowercase_h
 
 
 def lambda_handler(event, context):
-    print({"event", event})
+    print({"event": event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
@@ -89,7 +89,7 @@ def get_all_data_for_tenant(tenant_id):
     return db_accessor.get_all_items_by_tenant(tenant_id)
 
 
-def handle_rest_request(http_method, tenant_id, section_id, data):
+def handle_rest_request(http_method, tenant_id, section_id, data) -> bool | None:
     # Validate input
     if not tenant_id or not section_id:
         raise ValueError("Missing required parameters")
