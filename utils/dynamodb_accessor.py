@@ -59,20 +59,26 @@ class DynamoDBAccessor:
             print(f"Error reading from DynamoDB: {e}")
             return None
 
-    def put_item(self, tenant_id, data_id, data, save_nested=True):
+    def put_item(self, tenant_id, data_id, data, save_nested=True, metadata=None):
         try:
             item = {
                 'tenant_id': tenant_id,
                 'data_id': data_id,
             }
+
             item |= {'data': data} if save_nested else data
+
+            if metadata:
+                item |= {'metadata': metadata}
+
             self.table.put_item(Item=item)
+
             return True
         except Exception as e:
             print(f"Error writing to DynamoDB: {e}")
             return False
 
-    def batch_put_item(self, tenant_id, data_ids: list, data: list, save_nested=True):
+    def batch_put_item(self, tenant_id, data_ids: list, data: list, save_nested=True, metadata=None):
         try:
             with self.table.batch_writer() as batch:
                 for data_id, item_data in zip(data_ids, data):
@@ -80,7 +86,12 @@ class DynamoDBAccessor:
                         'tenant_id': tenant_id,
                         'data_id': data_id,
                     }
+
                     item |= {'data': item_data} if save_nested else item_data
+
+                    if metadata:
+                        item |= {'metadata': metadata}
+
                     batch.put_item(
                         Item=item
                     )
@@ -89,8 +100,11 @@ class DynamoDBAccessor:
             print(f"Error writing to DynamoDB: {e}")
             return False
 
-    def update_item(self, tenant_id, data_id, attribute_updates):
+    def update_item(self, tenant_id, data_id, attribute_updates, metadata=None):
         try:
+            if metadata:
+                attribute_updates |= {'metadata': metadata}
+
             updated_expression, expression_attribute_values = get_update_params(attribute_updates)
             res = self.table.update_item(
                 Key={
@@ -105,7 +119,10 @@ class DynamoDBAccessor:
             print(f"Error updating item in DynamoDB: {e}")
             return False
 
-    def batch_update_item(self, tenant_id, data_ids: list, attribute_updates: list):
+    def batch_update_item(self, tenant_id, data_ids: list, attribute_updates: list, metadata=None):
+        if metadata:
+            for attribute_update in attribute_updates:
+                attribute_update |= {'metadata': metadata}
 
         updated_expressions, expression_attribute_values = zip(
             *[get_update_params(attribute_update) for attribute_update in attribute_updates])

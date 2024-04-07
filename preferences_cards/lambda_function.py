@@ -105,12 +105,12 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
     # Initialize the DynamoDB accessor
     db_accessor = DynamoDBAccessor(os.environ['DYNAMODB_TABLE_NAME'])
 
-    # Add 'lastUpdated' to your data
+    metadata = {}
     if data is not None:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
-        data['lastUpdated'] = timestamp
+        metadata['lastUpdated'] = timestamp
 
     # Handle different HTTP methods
     if http_method == 'GET':
@@ -127,11 +127,11 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
         item = db_accessor.get_item(tenant_id, data_id)
         if item is not None:
             raise ValueError(f"Resource already exist: {data_id}")
-        return db_accessor.put_item(tenant_id, data_id, data)
+        return db_accessor.put_item(tenant_id, data_id, data, metadata=metadata)
 
     elif http_method == 'PUT':
         # Update an existing item
-        return db_accessor.put_item(tenant_id, data_id, data)
+        return db_accessor.put_item(tenant_id, data_id, data, metadata=metadata)
 
     elif http_method == 'DELETE':
         # Delete an item
