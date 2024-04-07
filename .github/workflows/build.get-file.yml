@@ -61,7 +61,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           aws-region: us-east-1
           aws-bucket: opmed-tf
-          file-path: ${{ steps.tags.outputs.function }}
+          file-path: ${{ steps.tags.outputs.function }}.zip
           destination-dir: /
           bucket-root: /
       - name: Deploy AWS Lambda function to prod account
@@ -84,7 +84,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           aws-region: us-east-1
           aws-bucket: opmed-tf
-          file-path: ${{ steps.tags.outputs.function-cache }}
+          file-path: ${{ steps.tags.outputs.function-cache }}.zip
           destination-dir: /
           bucket-root: /
       - name: Deploy AWS Lambda function to prod account
