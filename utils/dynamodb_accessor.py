@@ -78,7 +78,7 @@ class DynamoDBAccessor:
             print(f"Error writing to DynamoDB: {e}")
             return False
 
-    def batch_put_item(self, tenant_id, data_ids: list, data: list, save_nested=True):
+    def batch_put_item(self, tenant_id, data_ids: list, data: list, save_nested=True, metadata=None):
         try:
             with self.table.batch_writer() as batch:
                 for data_id, item_data in zip(data_ids, data):
@@ -86,7 +86,12 @@ class DynamoDBAccessor:
                         'tenant_id': tenant_id,
                         'data_id': data_id,
                     }
+
                     item |= {'data': item_data} if save_nested else item_data
+
+                    if metadata:
+                        item |= {'metadata': metadata}
+
                     batch.put_item(
                         Item=item
                     )
