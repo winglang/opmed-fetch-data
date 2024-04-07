@@ -100,8 +100,11 @@ class DynamoDBAccessor:
             print(f"Error writing to DynamoDB: {e}")
             return False
 
-    def update_item(self, tenant_id, data_id, attribute_updates):
+    def update_item(self, tenant_id, data_id, attribute_updates, metadata=None):
         try:
+            if metadata:
+                attribute_updates |= {'metadata': metadata}
+
             updated_expression, expression_attribute_values = get_update_params(attribute_updates)
             res = self.table.update_item(
                 Key={
@@ -116,7 +119,10 @@ class DynamoDBAccessor:
             print(f"Error updating item in DynamoDB: {e}")
             return False
 
-    def batch_update_item(self, tenant_id, data_ids: list, attribute_updates: list):
+    def batch_update_item(self, tenant_id, data_ids: list, attribute_updates: list, metadata=None):
+        if metadata:
+            for attribute_update in attribute_updates:
+                attribute_update |= {'metadata': metadata}
 
         updated_expressions, expression_attribute_values = zip(
             *[get_update_params(attribute_update) for attribute_update in attribute_updates])

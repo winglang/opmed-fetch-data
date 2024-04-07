@@ -12,17 +12,12 @@ SALT = os.getenv('HASH_ID_SALT')
 
 
 def lambda_handler(event, context):
-    print(event)
+    print({"event": event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
 
     username = get_username(event['headers'])
-
-    print(f'username: {username}')
-
-    for key in event:
-        print(key)
 
     service = get_service(event)
     if not valid_service(service):
@@ -205,8 +200,8 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         if category_id not in allowed_categories:
             raise ValueError(f"Unsupported category for PATCH: {category_id}")
         if len(resource_ids) == 1:
-            return db_accessor.update_item(tenant_id, resource_ids[0], data[0])
-        return db_accessor.batch_update_item(tenant_id, resource_ids, data)
+            return db_accessor.update_item(tenant_id, resource_ids[0], data[0], metadata=metadata)
+        return db_accessor.batch_update_item(tenant_id, resource_ids, data, metadata=metadata)
 
     elif http_method == 'DELETE':
         # Delete an item
