@@ -4,22 +4,15 @@ import os
 from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
-from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
-    create_error_response, valid_service, get_auth_cookie_data
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, create_error_response, \
+    valid_service, get_auth_cookie_data
 
 
 def lambda_handler(event, context):
-    print(event)
+    print({"event", event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
-
-    username = get_username(event['headers'])
-
-    print(f'username: {username}')
-
-    for key in event:
-        print(key)
 
     service = get_service(event)
     if not valid_service(service):
