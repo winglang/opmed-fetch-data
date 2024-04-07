@@ -68,7 +68,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
-          package: get-file.zip
+          package: ${{ steps.tags.outputs.function }}.zip
           function-name: ${{ steps.tags.outputs.function }}
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
@@ -91,7 +91,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
-          package: get-file-cache.zip
+          package: ${{ steps.tags.outputs.function-cache }}.zip
           function-name: ${{ steps.tags.outputs.function-cache }}
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
