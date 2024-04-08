@@ -6,5 +6,9 @@ __pycache__/
 
 # Internal files
 jwt_auth/run_jwt_auth.py
-
 proactive_nudge_reminder/run_nudge_reminder.py
+resources/run_resources.py
+tenants_params/run_tenant_params.py
+tenants_params/tenants_params_event.py
+
+

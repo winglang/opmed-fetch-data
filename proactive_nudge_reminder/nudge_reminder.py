@@ -29,14 +29,16 @@ def send_reminder(event, context):
     request_body = json.loads(event["body"])
     blocks = request_body["blocks"]
     doctor_name = request_body["doctorName"]
+    doctor_id = request_body["doctorId"]
 
     for block in blocks:
-        block["doctorName"] = request_body["doctorName"]
+        block["doctorName"] = doctor_name
+        block["doctorId"] = doctor_id
 
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
     recipients = sorted(request_body["recipients"])
-    link_for_surgeon = create_link(tenant, blocks, doctor_name)
+    link_for_surgeon = create_link(tenant, blocks, doctor_id)
     nudge_content = request_body["content"]
 
     method = event["path"].rsplit("/", 1)[-1]

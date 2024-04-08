@@ -4,22 +4,15 @@ import os
 from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
-from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
-    create_error_response, valid_service, get_auth_cookie_data
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, create_error_response, \
+    valid_service, get_auth_cookie_data
 
 
 def lambda_handler(event, context):
-    print(event)
+    print({"event": event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
-
-    username = get_username(event['headers'])
-
-    print(f'username: {username}')
-
-    for key in event:
-        print(key)
 
     service = get_service(event)
     if not valid_service(service):
@@ -96,7 +89,7 @@ def get_all_data_for_tenant(tenant_id):
     return db_accessor.get_all_items_by_tenant(tenant_id)
 
 
-def handle_rest_request(http_method, tenant_id, section_id, data):
+def handle_rest_request(http_method, tenant_id, section_id, data) -> bool | None:
     # Validate input
     if not tenant_id or not section_id:
         raise ValueError("Missing required parameters")
@@ -105,12 +98,12 @@ def handle_rest_request(http_method, tenant_id, section_id, data):
     table_name = get_table_name()
     db_accessor = DynamoDBAccessor(table_name)
 
-    # Add 'lastUpdated' to your data
+    metadata = {}
     if data is not None:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
-        data['lastUpdated'] = timestamp
+        metadata['lastUpdated'] = timestamp
 
     # Handle different HTTP methods
     if http_method == 'GET':
@@ -127,7 +120,7 @@ def handle_rest_request(http_method, tenant_id, section_id, data):
 
     elif http_method == 'PUT':
         # Update an existing item
-        return db_accessor.put_item(tenant_id, section_id, data)
+        return db_accessor.put_item(tenant_id, section_id, data, metadata=metadata)
 
     elif http_method == 'DELETE':
         # Delete an item is not supported.
