@@ -49,15 +49,15 @@ def send_reminder(event, context):
                 "html": get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
             }
             send_email(subject=subject, body=email, recipients=recipients)
-            res = "sent nudge email"
+            res = "Sent nudge email"
         case "send-sms":
             sms_txt = get_sms_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
             send_sms(recipients[0], sms_txt, sender_id=hospital_name)
-            res = "sent nudge sms"
+            res = "Sent nudge sms"
 
         case _:
             return {"statusCode": 400, "headers": {"Content-Type": "application/json"},
-                    "body": f"method not found: {method}"}
+                    "body": f"Method not found: {method}"}
 
     update_blocks_status(blocks, headers)
 
@@ -84,7 +84,7 @@ def get_sms_content(content, doctor_name, link, hospital_name):
         f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources\n"
         f"Thank you for your cooperation and understanding.\n"
         f"Best regards,\n"
-        f"{hospital_name} Perioperative Leadership Team"
+        f"{hospital_name} Perioperative Leadership Team."
     )
 
 

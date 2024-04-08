@@ -1,8 +1,7 @@
-# Create an SNS client
 import boto3
 
 
-def send_sms(phone_number, message, sender_id):
+def send_sms(phone_number: str, message: str, sender_id: str) -> dict:
     sns = boto3.client('sns')
     response = sns.publish(
         PhoneNumber=phone_number,
