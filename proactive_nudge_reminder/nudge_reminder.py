@@ -64,7 +64,7 @@ def send_reminder(event, context):
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": res}
 
 
-def get_email_content(content, doctor_name, link, hospital_name):
+def get_email_content(content: str, doctor_name: str, link: str, hospital_name: str) -> str:
     return (
         f"<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />{content}"
         f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the "
@@ -76,7 +76,7 @@ def get_email_content(content, doctor_name, link, hospital_name):
     )
 
 
-def get_sms_content(content, doctor_name, link, hospital_name):
+def get_sms_content(content: str, doctor_name: str, link: str, hospital_name: str) -> str:
     return (
         f"{content}"
         f"Dear Dr.{doctor_name}, We hope this message finds you well. We kindly request your assistance in releasing your block time and providing your approval via this link "
@@ -88,14 +88,14 @@ def get_sms_content(content, doctor_name, link, hospital_name):
     )
 
 
-def create_link(tenant, blocks, user_id):
+def create_link(tenant: str, blocks: list, user_id: str) -> str:
     block_ids: str = ",".join([block["blockId"] for block in blocks])
     params = {"token": generate_jwt(tenant, user_id, block_ids), "ids": block_ids}
 
     return url_surgeon_app + "?" + urlencode(params, doseq=True)
 
 
-def update_blocks_status(blocks, headers):
+def update_blocks_status(blocks: list, headers: dict) -> None:
     for block in blocks:
         block["releaseStatus"] = "pending"
         block["expired_at"] = int(datetime.fromisoformat(block["start"]).timestamp())
