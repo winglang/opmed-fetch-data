@@ -5,9 +5,9 @@ from urllib.parse import urlencode
 
 import requests
 
-from proactive_nudge_reminder.send_email import send_email
-from proactive_nudge_reminder.send_sms import send_sms
 from utils.jwt_utils import generate_jwt
+from utils.send_notification.send_email import send_email
+from utils.send_notification.send_sms import send_sms
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv("URL")
