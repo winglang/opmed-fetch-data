@@ -39,7 +39,7 @@ def send_reminder(event, context):
 
     recipients = sorted(request_body["recipients"])
     link_for_surgeon = create_link(tenant, blocks, doctor_id)
-    nudge_content = request_body["content"]
+    nudge_content = request_body.get("content", "")
 
     method = event["path"].rsplit("/", 1)[-1]
     print(f"Nudge method is: {method}")
