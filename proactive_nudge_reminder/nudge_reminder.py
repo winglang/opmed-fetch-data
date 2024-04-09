@@ -42,6 +42,7 @@ def send_reminder(event, context):
     nudge_content = request_body["content"]
 
     method = event["path"].rsplit("/", 1)[-1]
+    print(f"Nudge method is: {method}")
     match method:
         case "send-email":
             subject = f"Request for unused block time release"
@@ -59,7 +60,10 @@ def send_reminder(event, context):
             return {"statusCode": 400, "headers": {"Content-Type": "application/json"},
                     "body": f"Method not found: {method}"}
 
+    print(f"Sent nudge to {recipients} with method: {method}")
+
     update_blocks_status(blocks, headers)
+    print(f"Updated blocks statuses to pending: {[block["blockId"] for block in blocks]}")
 
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": res}
 
