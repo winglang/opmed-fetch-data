@@ -45,14 +45,14 @@ def send_reminder(event, context):
     print(f"Nudge method is: {method}")
     match method:
         case "send-email":
-            subject = f"Request for unused block time release"
+            subject = "Request for unused block time release"
             email = {
                 "html": get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
             }
             send_email(subject=subject, body=email, recipients=recipients)
             res = "Sent nudge email"
         case "send-sms":
-            sms_txt = get_sms_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
+            sms_txt = get_sms_content(doctor_name, link_for_surgeon, hospital_name)
             send_sms(recipients[0], sms_txt, sender_id=hospital_name)
             res = "Sent nudge sms"
 
@@ -80,11 +80,10 @@ def get_email_content(content: str, doctor_name: str, link: str, hospital_name: 
     )
 
 
-def get_sms_content(content: str, doctor_name: str, link: str, hospital_name: str) -> str:
+def get_sms_content(doctor_name: str, link: str, hospital_name: str) -> str:
     return (
-        f"{content}"
         f"Dear Dr.{doctor_name}, We hope this message finds you well. We kindly request your assistance in releasing your block time and providing your approval via this link "
-        f"{link} on Opmed.ai "
+        f"{link} on Opmed.ai\n"
         f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources\n"
         f"Thank you for your cooperation and understanding.\n"
         f"Best regards,\n"
