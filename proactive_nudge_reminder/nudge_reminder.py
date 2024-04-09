@@ -38,7 +38,7 @@ def send_reminder(event, context):
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
     recipients = sorted(request_body["recipients"])
-    link_for_surgeon = create_link(tenant, blocks, doctor_id)
+    link_for_surgeon = create_link(tenant, doctor_id)
     nudge_content = request_body.get("content", "")
 
     method = event["path"].rsplit("/", 1)[-1]
@@ -92,9 +92,8 @@ def get_sms_content(content: str, doctor_name: str, link: str, hospital_name: st
     )
 
 
-def create_link(tenant: str, blocks: list, user_id: str) -> str:
-    block_ids: str = ",".join([block["blockId"] for block in blocks])
-    params = {"token": generate_jwt(tenant, user_id, block_ids), "ids": block_ids}
+def create_link(tenant: str, user_id: str) -> str:
+    params = {"token": generate_jwt(tenant, user_id)}
 
     return url_surgeon_app + "?" + urlencode(params, doseq=True)
 
