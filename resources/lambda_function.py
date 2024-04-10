@@ -12,17 +12,12 @@ SALT = os.getenv('HASH_ID_SALT')
 
 
 def lambda_handler(event, context):
-    print(event)
+    print({"event": event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
 
     username = get_username(event['headers'])
-
-    print(f'username: {username}')
-
-    for key in event:
-        print(key)
 
     service = get_service(event)
     if not valid_service(service):
@@ -64,11 +59,11 @@ def lambda_handler(event, context):
 
         if path_splits[5] == 'bundle':
             if not resource_ids:
-                print(f"Invalid request. Requests bundle but didn't provide ids")
+                print("Invalid request. Requests bundle but didn't provide ids")
                 return create_error_response(400, 'Invalid request')
         else:
             if resource_ids:
-                print(f"Invalid request. Provide multiple ids but didn't request bundle")
+                print("Invalid request. Provide multiple ids but didn't request bundle")
                 return create_error_response(400, 'Invalid request')
             resource_ids = [path_splits[5]]
 
@@ -146,13 +141,12 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
     db_accessor = DynamoDBAccessor(table_name)
     internal_to_external_ids_table = os.environ['internal_to_external_ids']
 
-    # Add 'lastUpdated' to your data
+    metadata = {}
     if data is not None and resource_ids != ["filterByField"]:
         # Get current time as unix time in milliseconds
         now = datetime.datetime.now()
         timestamp = int(now.timestamp() * 1000)
-        for item in data:
-            item['lastUpdated'] = timestamp
+        metadata['lastUpdated'] = timestamp
 
     # Handle different HTTP methods
     if http_method == 'GET':
@@ -189,24 +183,25 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
         if len(resource_ids) == 1:
-            return db_accessor.put_item(tenant_id, resource_ids[0], data[0], save_nested=save_nested)
-        return db_accessor.batch_put_item(tenant_id, internal_resource_ids, data, save_nested=save_nested)
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0], save_nested=save_nested, metadata=metadata)
+        return db_accessor.batch_put_item(tenant_id, internal_resource_ids, data, save_nested=save_nested,
+                                          metadata=metadata)
 
     elif http_method == 'PUT':
         # Update an existing item
         categories_saved_nested = ["surgeons", "nurses", "anesthesiologists"]
         save_nested = category_id in categories_saved_nested
         if len(resource_ids) == 1:
-            return db_accessor.put_item(tenant_id, resource_ids[0], data[0], save_nested=save_nested)
-        return db_accessor.batch_put_item(tenant_id, resource_ids, data, save_nested=save_nested)
+            return db_accessor.put_item(tenant_id, resource_ids[0], data[0], save_nested=save_nested, metadata=metadata)
+        return db_accessor.batch_put_item(tenant_id, resource_ids, data, save_nested=save_nested, metadata=metadata)
 
     elif http_method == 'PATCH':
         allowed_categories = ["proactive_blocks_status"]
         if category_id not in allowed_categories:
             raise ValueError(f"Unsupported category for PATCH: {category_id}")
         if len(resource_ids) == 1:
-            return db_accessor.update_item(tenant_id, resource_ids[0], data[0])
-        return db_accessor.batch_update_item(tenant_id, resource_ids, data)
+            return db_accessor.update_item(tenant_id, resource_ids[0], data[0], metadata=metadata)
+        return db_accessor.batch_update_item(tenant_id, resource_ids, data, metadata=metadata)
 
     elif http_method == 'DELETE':
         # Delete an item

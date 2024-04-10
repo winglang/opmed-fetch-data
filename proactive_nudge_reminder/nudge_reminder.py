@@ -5,8 +5,9 @@ from urllib.parse import urlencode
 
 import requests
 
-from proactive_nudge_reminder.send_email import send_email
 from utils.jwt_utils import generate_jwt
+from utils.send_notification.send_email import send_email
+from utils.send_notification.send_sms import send_sms
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv("URL")
@@ -37,26 +38,37 @@ def send_reminder(event, context):
     headers = {key: val for key, val in event.get("headers", {}).items() if key.lower() in AUTH_HEADERS}
 
     recipients = sorted(request_body["recipients"])
-    link_for_surgeon = create_link(tenant, blocks, doctor_id)
-    text = request_body["content"]
+    link_for_surgeon = create_link(tenant, doctor_id)
+    nudge_content = request_body.get("content", "")
 
     method = event["path"].rsplit("/", 1)[-1]
-    if method == "send-email":
-        subject = f"Request for unused block time release"
-        email = {
-            "html": get_email_content(text, doctor_name, link_for_surgeon, hospital_name)
-        }
-        send_email(subject=subject, body=email, recipients=recipients)
-        res = "sent nudge email"
-    else:
-        res = f"method not found: {method}"
+    print(f"Nudge method is: {method}")
+    match method:
+        case "send-email":
+            subject = "Request for unused block time release"
+            email = {
+                "html": get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)
+            }
+            send_email(subject=subject, body=email, recipients=recipients)
+            res = "Sent nudge email"
+        case "send-sms":
+            sms_txt = get_sms_content(doctor_name, link_for_surgeon, hospital_name)
+            send_sms(recipients[0], sms_txt, sender_id=hospital_name)
+            res = "Sent nudge sms"
+
+        case _:
+            return {"statusCode": 400, "headers": {"Content-Type": "application/json"},
+                    "body": f"Method not found: {method}"}
+
+    print(f"Sent nudge to {recipients} with method: {method}")
 
     update_blocks_status(blocks, headers)
+    print(f"Updated blocks statuses to pending: {[block["blockId"] for block in blocks]}")
 
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": res}
 
 
-def get_email_content(content, doctor_name, link, hospital_name):
+def get_email_content(content: str, doctor_name: str, link: str, hospital_name: str) -> str:
     return (
         f"<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />{content}"
         f"<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the "
@@ -68,14 +80,24 @@ def get_email_content(content, doctor_name, link, hospital_name):
     )
 
 
-def create_link(tenant, blocks, user_id):
-    block_ids: str = ",".join([block["blockId"] for block in blocks])
-    params = {"token": generate_jwt(tenant, user_id, block_ids), "ids": block_ids}
+def get_sms_content(doctor_name: str, link: str, hospital_name: str) -> str:
+    return (
+        f"Dear Dr.{doctor_name}, We hope this message finds you well. We kindly request your assistance in releasing your block time and providing your approval via this link "
+        f"{link} on Opmed.ai\n"
+        f"This step is crucial for optimizing our scheduling and ensuring the best use of our resources\n"
+        f"Thank you for your cooperation and understanding.\n"
+        f"Best regards,\n"
+        f"{hospital_name} Perioperative Leadership Team."
+    )
+
+
+def create_link(tenant: str, user_id: str) -> str:
+    params = {"token": generate_jwt(tenant, user_id)}
 
     return url_surgeon_app + "?" + urlencode(params, doseq=True)
 
 
-def update_blocks_status(blocks, headers):
+def update_blocks_status(blocks: list, headers: dict) -> None:
     for block in blocks:
         block["releaseStatus"] = "pending"
         block["expired_at"] = int(datetime.fromisoformat(block["start"]).timestamp())
