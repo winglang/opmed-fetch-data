@@ -103,7 +103,7 @@ def proactive_block_realise(event, context):
         response_body = blocks_predictions_res.text
     save_to_s3 = (event.get("queryStringParameters") or {}).get("save_to_s3", False)
     if save_to_s3:
-        s3_key = os.path.join(tenant, "proactive-block.json")
+        s3_key = os.path.join(tenant, "proactive_block.json")
         bucket_name = os.environ['BUCKET_NAME']
         try:
             s3 = boto3.client('s3')
