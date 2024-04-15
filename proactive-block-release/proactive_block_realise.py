@@ -12,6 +12,7 @@ from boto3.dynamodb.conditions import Key, Attr
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv('URL')
+jsonFIleName = os.getenv('JSON_FILE_NAME')
 blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
 
 BLOCK_FIELDS_TO_RETURN = ['lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease']
@@ -103,7 +104,7 @@ def proactive_block_realise(event, context):
         response_body = blocks_predictions_res.text
     save_to_s3 = (event.get("queryStringParameters") or {}).get("save_to_s3", False)
     if save_to_s3:
-        s3_key = os.path.join(tenant, "proactive_block.json")
+        s3_key = os.path.join(tenant, jsonFIleName)
         bucket_name = os.environ['BUCKET_NAME']
         try:
             s3 = boto3.client('s3')
