@@ -32,18 +32,15 @@ jobs:
           python-version: '3.10'
       - run: pip install -r requirements.txt
       - name: zip lambda
-        run: zip -r lambda.zip fetch utils connectors
+        run: zip -r ${{ steps.tags.outputs.function }}.zip fetch utils connectors
       - name: Deploy AWS Lambda function
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
-          package: lambda.zip
+          package: ${{ steps.tags.outputs.function }}.zip
           function-name: ${{ steps.tags.outputs.function }}
           AWS_REGION: us-east-1
           AWS_SECRET_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: zip lambda
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: zip -r ${{ steps.tags.outputs.function }}.zip fetch utils connectors
       - name: Deploy to S3 prod account
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: hkusu/s3-upload-action@v2
