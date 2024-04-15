@@ -16,4 +16,6 @@ tenants_params/tenants_params_event.py
 
 get_file/run_get_file.py
 
+get_list/run_get_list.py
+
 
