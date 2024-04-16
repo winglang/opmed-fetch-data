@@ -74,12 +74,8 @@ def get_blocks_predictions(fetch_data, headers):
 
 
 def invoke_fetch_data(query_string_parameters, headers):
-    default_from_value = (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d')  # Today + 3 days
-    default_to_value = (datetime.now() + timedelta(days=31)).strftime('%Y-%m-%d')  # Today + 31 days
-
     query_string_parameters = {key: val for key, val in query_string_parameters.items() if key in ['from', 'to']}
-    query_string_parameters['from'] = query_string_parameters.get('from', default_from_value)
-    query_string_parameters['to'] = query_string_parameters.get('to', default_to_value)
+
     event = {
         "queryStringParameters": query_string_parameters,
         'headers': headers,
@@ -102,6 +98,11 @@ def proactive_block_realise_handler(event, context):
 
     queryStringParameters = event.get('queryStringParameters', {})
     print(f'queryStringParameters: {queryStringParameters}')
+
+    default_from_value = (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d')  # Today + 3 days
+    default_to_value = (datetime.now() + timedelta(days=31)).strftime('%Y-%m-%d')  # Today + 31 days
+    queryStringParameters['from'] = queryStringParameters.get('from', default_from_value)
+    queryStringParameters['to'] = queryStringParameters.get('to', default_to_value)
 
     headers_for_identification = {'user-id': username, 'tenant-id': tenant}
     fetch_data = invoke_fetch_data(queryStringParameters, headers_for_identification)
