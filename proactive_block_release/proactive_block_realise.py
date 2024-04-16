@@ -87,7 +87,7 @@ def invoke_fetch_data(query_string_parameters, headers):
     return invoke_lambda_function(fetch_data_lambda_name, event)
 
 
-def proactive_block_realise(event, context):
+def proactive_block_realise_handler(event, context):
     if lowercase_headers(event):
         return lowercase_headers(event)
 
