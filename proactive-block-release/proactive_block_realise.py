@@ -12,6 +12,7 @@ from boto3.dynamodb.conditions import Key, Attr
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv('URL')
+jsonFIleName = os.getenv('JSON_FILE_NAME')
 blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
 
 BLOCK_FIELDS_TO_RETURN = ['lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease']
@@ -101,21 +102,25 @@ def proactive_block_realise(event, context):
         response_body = json.dumps(predicted_blocks, cls=DecimalEncoder)
     else:
         response_body = blocks_predictions_res.text
-    save_to_s3 = (event.get("body") or {}).get("save_to_s3", False)
+    save_to_s3 = (event.get("queryStringParameters") or {}).get("save_to_s3", False)
     if save_to_s3:
-        s3_key = "proactive-block.json"
+        s3_key = os.path.join(tenant, jsonFIleName)
         bucket_name = os.environ['BUCKET_NAME']
         try:
-            s3 = boto3.resource('s3')
-            s3object = s3.Object(bucket_name, s3_key)
-            s3object.put(
-                Body=response_body
+            s3 = boto3.client('s3')
+
+            s3.put_object(
+                Bucket=bucket_name,
+                Key=s3_key,
+                Body=json.dumps(response_body)
             )
+
             s3.put_object_acl(
                 Bucket=bucket_name,
                 Key=s3_key,
                 ACL='authenticated-read'
             )
+
             print("Success: Saved to S3")
         except Exception as e:
             print("Error: {}".format(e))
@@ -133,7 +138,8 @@ if __name__ == '__main__':
     event = {
         "queryStringParameters": {
             'from': '2024-03-01',
-            'to': '2024-05-01'
+            'to': '2024-05-01',
+            'save_to_s3': True
         },
         'headers': {
             "gmix_serviceid": "hmc-users",
