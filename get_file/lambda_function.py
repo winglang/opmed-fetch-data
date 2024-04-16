@@ -4,7 +4,7 @@ import os
 
 import boto3
 
-from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, valid_service
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, valid_service
 
 
 def create_presigned_url(bucket_name, object_name, expiration=600):
@@ -35,18 +35,16 @@ def get_last_modified(bucket_name, object_name):
 
 
 def lambda_handler(event, context):
-    print(event)
+    print({"event": event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
 
-    username = get_username(event['headers'])
+    if 'queryStringParameters' not in event:
+        return
 
-    print(f'username: {username}')
-
-    for key in event: print(key)
-    if 'queryStringParameters' not in event: return
-    if 'file' not in event['queryStringParameters']: return
+    if 'file' not in event['queryStringParameters']:
+        return
 
     service = get_service(event)
     if not valid_service(service):

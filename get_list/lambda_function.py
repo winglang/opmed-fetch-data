@@ -4,7 +4,7 @@ from datetime import datetime
 
 import boto3
 
-from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, valid_service
+from utils.services_utils import get_service, handle_error_response, lowercase_headers, valid_service
 
 
 def get_list_by_service(prefix):
@@ -25,14 +25,10 @@ def get_list_by_service(prefix):
 
 
 def lambda_handler(event, context):
-    print(event)
+    print({"event": event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
-
-    username = get_username(event['headers'])
-
-    print(f'username: {username}')
 
     service = get_service(event)
     if not valid_service(service):
