@@ -10,10 +10,12 @@ import pandas as pd
 def get_s3_client():
     # Create a Boto3 S3 client
     if os.getenv('env', None) == 'local':
-        s3client = boto3.client('s3',
-                                 aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                                 aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-                                 config=boto3.session.Config(signature_version='s3v4'))
+        s3client = boto3.client(
+            's3',
+            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            config=boto3.session.Config(signature_version='s3v4'),
+        )
     else:
         s3client = boto3.client('s3', config=boto3.session.Config(signature_version='s3v4'))
     return s3client
@@ -31,13 +33,13 @@ def get_s3_object(filename, bucket):
 
 
 def get_s3_json(filename, bucket):
-    data = s3_client.get_object(Bucket=bucket, Key=filename)["Body"].read()
+    data = s3_client.get_object(Bucket=bucket, Key=filename)['Body'].read()
     json_file = json.loads(data)
     return json_file
 
 
 def get_s3_csv(filename, bucket):
-    cached_data = s3_client.get_object(Bucket=bucket, Key=filename)["Body"].read()
+    cached_data = s3_client.get_object(Bucket=bucket, Key=filename)['Body'].read()
     return pd.read_csv(io.BytesIO(cached_data), encoding='utf8')
 
 
@@ -53,8 +55,9 @@ def get_delta_files_from_s3(bucket, last_date, morning_start_time, morning_end_t
         file_date = file_datetime.date()
 
         if file_datetime > last_date:  # take only the new files
-            if (file_datetime.time() >= time(morning_start_time, 0)) and \
-                    (file_datetime.time() <= time(morning_end_time, 0)):
+            if (file_datetime.time() >= time(morning_start_time, 0)) and (
+                file_datetime.time() <= time(morning_end_time, 0)
+            ):
                 if file_date not in relevant_files_dict:
                     relevant_files_dict[file_date] = file_name
     return list(relevant_files_dict.values())
@@ -72,20 +75,17 @@ def get_items_from_s3(bucket):
 
     return [item['Key'] for item in items]  # [:2]
 
+
 def put_item_in_s3(bucket, key, body, acl_needed=False):
     # Upload the CSV string to the specified file in the S3 bucket
     response = s3_client.put_object(Bucket=bucket, Key=key, Body=body)
     # Set the object ACL to grant read permissions to authenticated users
 
     if acl_needed:
-        s3_client.put_object_acl(
-            Bucket=bucket,
-            Key=key,
-            ACL='authenticated-read'
-        )
+        s3_client.put_object_acl(Bucket=bucket, Key=key, ACL='authenticated-read')
 
     # Check if the upload was successful
     if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        print(f"File uploaded successfully! path: {bucket}/{key}")
+        print(f'File uploaded successfully! path: {bucket}/{key}')
     else:
-        print("Failed to upload scheduled file. error code: ", response['ResponseMetadata']['HTTPStatusCode'])
+        print('Failed to upload scheduled file. error code: ', response['ResponseMetadata']['HTTPStatusCode'])

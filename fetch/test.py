@@ -11,16 +11,16 @@ def main():
     to_time = datetime.datetime.now() + datetime.timedelta(days=1)
 
     event = {
-        "queryStringParameters": {
-            "from": from_time.strftime("%Y-%m-%d"),
-            "to": to_time.strftime("%Y-%m-%d"),
-            "save": False
+        'queryStringParameters': {
+            'from': from_time.strftime('%Y-%m-%d'),
+            'to': to_time.strftime('%Y-%m-%d'),
+            'save': False,
         },
-        "headers": {
-            "gmix_serviceid": "fhir-users",
-            "referer": 'https://plannerd.greatmix.ai/',
-            "Cookie": 'CognitoIdentityServiceProvider.34rg8....Copy cookie from browser;'
-        }
+        'headers': {
+            'gmix_serviceid': 'fhir-users',
+            'referer': 'https://plannerd.greatmix.ai/',
+            'Cookie': 'CognitoIdentityServiceProvider.34rg8....Copy cookie from browser;',
+        },
     }
     context = aws_lambda_context.LambdaContext()
 

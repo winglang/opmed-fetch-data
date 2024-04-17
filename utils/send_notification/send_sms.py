@@ -7,14 +7,8 @@ def send_sms(phone_number: str, message: str, sender_id: str) -> dict:
         PhoneNumber=phone_number,
         Message=message,
         MessageAttributes={
-            'AWS.SNS.SMS.SMSType': {
-                'DataType': 'String',
-                'StringValue': 'Transactional'
-            },
-            'AWS.SNS.SMS.SenderID': {
-                'DataType': 'String',
-                'StringValue': sender_id
-            }
-        }
+            'AWS.SNS.SMS.SMSType': {'DataType': 'String', 'StringValue': 'Transactional'},
+            'AWS.SNS.SMS.SenderID': {'DataType': 'String', 'StringValue': sender_id},
+        },
     )
     return response
