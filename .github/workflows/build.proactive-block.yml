@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - proactive-block-release/**
+      - proactive_block_release/**
       - utils/**
       - .github/workflows/build.proactive-block.yml
 
@@ -31,7 +31,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - name: zip lambda
-        run: zip -r ${{ steps.tags.outputs.function }}.zip proactive-block-release utils
+        run: zip -r ${{ steps.tags.outputs.function }}.zip proactive_block_release utils
       - name: Deploy AWS Lambda function
         uses: yvesgurcan/deploy-lambda-function@v0.0.5
         with:
