@@ -5,8 +5,14 @@ from decimal import Decimal
 
 from utils.dynamodb_accessor import DynamoDBAccessor
 from utils.preferences_card_pkey import PreferencesCardsPKey
-from utils.services_utils import get_service, handle_error_response, lowercase_headers, get_username, \
-    create_error_response, valid_service
+from utils.services_utils import (
+    get_service,
+    handle_error_response,
+    lowercase_headers,
+    get_username,
+    create_error_response,
+    valid_service,
+)
 
 
 def lambda_handler(event, context):
@@ -33,36 +39,28 @@ def lambda_handler(event, context):
     # Check if the method is GET and the path is /api/v1/preference-cards - list all objects.
     if http_method == 'GET' and path == '/api/v1/preference-cards':  # Note: without "/"
         parsed_data_ids = get_parsed_data_ids_for_tenant(service)
-        print("Parsed Data IDs:", parsed_data_ids)
-        return {
-            'statusCode': 200,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            'body': json.dumps(parsed_data_ids)
-        }
+        print('Parsed Data IDs:', parsed_data_ids)
+        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps(parsed_data_ids)}
 
     # For other cases, extracting procedure and surgeon from the path and perform "rest" operations.
     elif path.startswith('/api/v1/preference-cards/'):
         # Splitting the path to get the individual components
         _, _, _, _, procedure, surgeon = path.split('/')
         data_object = None
-        if event is not None and "body" in event and event["body"] is not None:
+        if event is not None and 'body' in event and event['body'] is not None:
             data_object = json.loads(event['body'])
         try:
             result = handle_rest_request(http_method, service, procedure, surgeon, data_object)
             if result:
                 return {
                     'statusCode': 200,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    'body': json.dumps(result, default=dynamodb_decimal_default_encoder)
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps(result, default=dynamodb_decimal_default_encoder),
                 }
             else:
                 return create_error_response(500, 'Operation failed')
         except ValueError as e:
-            print(f"Caught an error: {e}")
+            print(f'Caught an error: {e}')
             return create_error_response(500, 'Invalid parameter')
 
     # Default response for other cases
@@ -74,7 +72,7 @@ def lambda_handler(event, context):
 def get_parsed_data_ids_for_tenant(tenant_id):
     # Ensure that tenant_id is provided
     if not tenant_id:
-        raise ValueError("Missing tenantId")
+        raise ValueError('Missing tenantId')
 
     # Initialize DynamoDB Accessor with your table name
     db_accessor = DynamoDBAccessor(os.environ['DYNAMODB_TABLE_NAME'])
@@ -97,7 +95,7 @@ def get_parsed_data_ids_for_tenant(tenant_id):
 def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
     # Validate input
     if not tenant_id or not procedure_id or not surgeon_id:
-        raise ValueError("Missing required parameters")
+        raise ValueError('Missing required parameters')
 
     # Combine procedure_id and surgeon_id into dataId
     data_id = PreferencesCardsPKey.generate_key(procedure_id, surgeon_id)
@@ -126,7 +124,7 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
         # check that object does not exist before adding.
         item = db_accessor.get_item(tenant_id, data_id)
         if item is not None:
-            raise ValueError(f"Resource already exist: {data_id}")
+            raise ValueError(f'Resource already exist: {data_id}')
         return db_accessor.put_item(tenant_id, data_id, data, metadata=metadata)
 
     elif http_method == 'PUT':
@@ -138,7 +136,7 @@ def handle_rest_request(http_method, tenant_id, procedure_id, surgeon_id, data):
         return db_accessor.delete_item(tenant_id, data_id)
 
     else:
-        raise ValueError(f"Unsupported HTTP method: {http_method}")
+        raise ValueError(f'Unsupported HTTP method: {http_method}')
 
 
 # Custom encoder function - duplicate code

@@ -8,7 +8,7 @@ class PreferencesCardsPKey:
         :param surgeon_id: The surgeon ID.
         :return: A concatenated key string.
         """
-        return f"{procedure_id}$${surgeon_id}"
+        return f'{procedure_id}$${surgeon_id}'
 
     @staticmethod
     def parse_key(key):
@@ -19,6 +19,7 @@ class PreferencesCardsPKey:
         :return: A tuple containing procedure_id and surgeon_id.
         """
         return key.split('$$', 1)
+
 
 # Example usage
 # key = PreferencesCardsPKey.generate_key("12345", "67890")

@@ -6,7 +6,6 @@ from predict_block_usage.utils.s3_utils import get_s3_object
 
 
 def compute_records_and_averages(df, DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB):
-
     df_1W_bins = compute_xW_bins(df.copy(deep=True), 1, DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB)
     df_4W_bins = compute_xW_bins(df.copy(deep=True), 4, DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB)
     dict_average = compute_averages_dict(df_4W_bins)
@@ -20,7 +19,7 @@ def save_to_json(all_surgeons_data, json_file_name):
     # Save the JSON data to a file
     with open(json_file_name, 'w') as file:
         file.write(json_data)
-    print(f"Data successfully saved to {json_file_name}")
+    print(f'Data successfully saved to {json_file_name}')
 
 
 def compute_xW_bins(df, weeks, DOCTORS_TO_HASH_FILE_NAME, BUCKET_NAME_DB):
@@ -68,10 +67,14 @@ def split_to_xW_bins(df_input, weeks):
     # Group the data by 'surgeon_index' and weeks-week periods, and sum the durations
     freq_str = str(weeks) + 'W'
     # Group the DataFrame and perform the aggregation
-    df_grouped = df.groupby(['doctors_license', pd.Grouper(key='start', freq=freq_str)]).agg(
-        duration_sum=('duration', 'sum'),  # Sum the duration for each group
-        row_count=('duration', 'size')  # Count the rows in each group
-    ).reset_index()
+    df_grouped = (
+        df.groupby(['doctors_license', pd.Grouper(key='start', freq=freq_str)])
+        .agg(
+            duration_sum=('duration', 'sum'),  # Sum the duration for each group
+            row_count=('duration', 'size'),  # Count the rows in each group
+        )
+        .reset_index()
+    )
 
     # remove the last bin for every doctor
     df_grouped = df_grouped.groupby('doctors_license').apply(lambda x: x.iloc[:-1]).reset_index(drop=True)
@@ -225,9 +228,6 @@ def compute_json_for_s3(df_1W, df_4W, surgeons_dict):
         averages_data = surgeons_dict.get(surgeon_hash, {})
 
         # Combine DataFrame data and averages data
-        all_surgeons_data[surgeon_hash] = {
-            'records': surgeon_records,
-            'averages': averages_data
-        }
+        all_surgeons_data[surgeon_hash] = {'records': surgeon_records, 'averages': averages_data}
 
     return all_surgeons_data

@@ -9,9 +9,12 @@ from utils.services_utils import get_service, handle_error_response, lowercase_h
 
 def get_list_by_service(prefix):
     if os.getenv('env', None) == 'local':
-        s3_client = boto3.client('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                                 aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-                                 config=boto3.session.Config(signature_version='s3v4'))
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            config=boto3.session.Config(signature_version='s3v4'),
+        )
     else:
         s3_client = boto3.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
@@ -25,7 +28,7 @@ def get_list_by_service(prefix):
 
 
 def lambda_handler(event, context):
-    print({"event": event})
+    print({'event': event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
@@ -50,11 +53,7 @@ def lambda_handler(event, context):
             return json.JSONEncoder.default(self, obj)
 
     return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json"
-        },
-        "body": json.dumps({
-            "list": objects_list
-        }, cls=DateEncoder)
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({'list': objects_list}, cls=DateEncoder),
     }

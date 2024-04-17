@@ -13,8 +13,8 @@ def compute_scheduled_and_allocation_dfs(file_names):
     for file_name in file_names:
         counter += 1
         if counter % 50 == 0:
-            print(f"file number {counter}")
-        df = pd.DataFrame(get_s3_object(file_name, os.getenv("BUCKET_NAME_FETCH")))
+            print(f'file number {counter}')
+        df = pd.DataFrame(get_s3_object(file_name, os.getenv('BUCKET_NAME_FETCH')))
 
         # get the date from file name
         file_date_str = file_name.split('.')[1][:8]  # Adjust slicing if necessary
@@ -60,10 +60,12 @@ def compute_total_scheduled_time(df):
         last_row_current_block = last_row_current_block - 1
 
         # now i know the first and last, I need to take the maximum and minimum and put it in the first row.
-        df.loc[current_block_row_index, 'start'] = df.loc[current_block_row_index + 1: last_row_current_block,
-                                                          'start'].min()
-        df.loc[current_block_row_index, 'end'] = df.loc[current_block_row_index + 1: last_row_current_block,
-                                                        'end'].max()
+        df.loc[current_block_row_index, 'start'] = df.loc[
+            current_block_row_index + 1 : last_row_current_block, 'start'
+        ].min()
+        df.loc[current_block_row_index, 'end'] = df.loc[
+            current_block_row_index + 1 : last_row_current_block, 'end'
+        ].max()
 
         current_block_row_index = next_block_row_index
         last_row_current_block = current_block_row_index + 1

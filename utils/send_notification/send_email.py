@@ -14,16 +14,12 @@ def send_email(subject, body, attachments=None, recipients=None):
 
     msg = create_multipart_message(sender, recipients, subject, body.get('text'), body.get('html'), attachments)
     ses_client = boto3.client('ses')  # Use your settings here
-    return ses_client.send_raw_email(
-        Source=sender,
-        Destinations=recipients,
-        RawMessage={'Data': msg.as_string()}
-    )
+    return ses_client.send_raw_email(Source=sender, Destinations=recipients, RawMessage={'Data': msg.as_string()})
 
 
 def create_multipart_message(
-        sender: str, recipients: list, title: str, text: str = None, html: str = None, attachments: list = None) \
-        -> MIMEMultipart:
+    sender: str, recipients: list, title: str, text: str = None, html: str = None, attachments: list = None
+) -> MIMEMultipart:
     """
     Creates a MIME multipart message object.
     Uses only the Python `email` standard library.

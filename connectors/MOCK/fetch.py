@@ -6,9 +6,7 @@ def get_url():
 
 
 def get_headers(event):
-    headers = {
-        "source": 'mock'
-    }
+    headers = {'source': 'mock'}
     return headers
 
 
