@@ -26,22 +26,22 @@ def convert_block_algo_model(block):
     algo_model_block = {
         'start': block['start'],
         'end': block['end'],
-        'hash_nurse_name': [nurse.split(' - ')[0] for nurse in
-                            block['nurse_name'].split(',') if
-                            nurse],
-        'hash_sanitaire_name': [sanitaire.split(' - ')[0] for sanitaire in
-                                block['sanitaire_name'].split(',') if sanitaire],
-        'hash_assistant_name': [assistant.split(' - ')[0] for assistant in
-                                block['assistant_name'].split(',') if assistant],
-        'hash_anesthetist_name': [anesthetist.split(' - ')[0] for anesthetist in
-                                  block['anesthetist_name'].split(',') if anesthetist],
+        'hash_nurse_name': [nurse.split(' - ')[0] for nurse in block['nurse_name'].split(',') if nurse],
+        'hash_sanitaire_name': [
+            sanitaire.split(' - ')[0] for sanitaire in block['sanitaire_name'].split(',') if sanitaire
+        ],
+        'hash_assistant_name': [
+            assistant.split(' - ')[0] for assistant in block['assistant_name'].split(',') if assistant
+        ],
+        'hash_anesthetist_name': [
+            anesthetist.split(' - ')[0] for anesthetist in block['anesthetist_name'].split(',') if anesthetist
+        ],
         'hash_title': generate_sha256_hash(block['title'], SALT),
         # Patch: Some tenants send doctors names in the title which we want to hide.
         'resourceId': block['resourceId'],
         'id': block['id'],
         'doctor_id': block['doctor_id'],
         'doctors_license': generate_sha256_hash(block['doctors_license'], SALT),
-
     }
 
     return algo_model_block
@@ -66,8 +66,9 @@ def convert_task_algo_model(task, i, parent_block):
         'patient_age': task['patient_age'],
         'anesthesia': task['anesthesia'],
         'resources_ids': {
-            resource: parent_block.get(f'hash_{resource}_name') for resource in
-            ['nurse', 'sanitaire', 'assistant', 'anesthetist'] if parent_block.get(f'hash_{resource}_name')
+            resource: parent_block.get(f'hash_{resource}_name')
+            for resource in ['nurse', 'sanitaire', 'assistant', 'anesthetist']
+            if parent_block.get(f'hash_{resource}_name')
         },
         'xray_type': task.get('xray_type'),
         'xray_type_value': task.get('xray_type_value'),
@@ -75,7 +76,7 @@ def convert_task_algo_model(task, i, parent_block):
         'heart_lung_machine_request': task.get('heart_lung_machine_request'),
         'additionalEquipment': task.get('additionalEquipment'),
         'sur_name': task.get('sur_name'),
-        'doc_name': task.get('doc_name')
+        'doc_name': task.get('doc_name'),
     }
 
     return algo_model_task
@@ -83,13 +84,13 @@ def convert_task_algo_model(task, i, parent_block):
 
 def convert_to_algo_model(fetch_data: list):
     blocks = {block['id']: convert_block_algo_model(block) for block in fetch_data if is_block(block)}
-    tasks = [convert_task_algo_model(task, i, blocks[task['parent_block_id']]) for i, task in enumerate(fetch_data) if
-             is_task(task)]
+    tasks = [
+        convert_task_algo_model(task, i, blocks[task['parent_block_id']])
+        for i, task in enumerate(fetch_data)
+        if is_task(task)
+    ]
 
-    fetch_data = {
-        'blocks': list(blocks.values()),
-        'tasks': tasks
-    }
+    fetch_data = {'blocks': list(blocks.values()), 'tasks': tasks}
     return fetch_data
 
 
@@ -109,30 +110,26 @@ def lambda_handler(event, context):
     # Unit test only!
     service = get_service(event)
 
-    print("event: {}".format(event))
-    if event is not None and "body" in event and event["body"] is not None and "save" in event["body"]:
+    print('event: {}'.format(event))
+    if event is not None and 'body' in event and event['body'] is not None and 'save' in event['body']:
         save_to_blob = True
-    if event is not None and "save" in event:
+    if event is not None and 'save' in event:
         save_to_blob = True
 
-    if "queryStringParameters" in event and event["queryStringParameters"] is not None:
-        if "from" in event["queryStringParameters"]:
-            from_date = datetime.datetime.strptime(event["queryStringParameters"]["from"], "%Y-%m-%d")
-        if "to" in event["queryStringParameters"]:
-            to_date = datetime.datetime.strptime(event["queryStringParameters"]["to"], "%Y-%m-%d")
-        if "save" in event["queryStringParameters"]:
-            save_to_blob = event["queryStringParameters"]['save']
+    if 'queryStringParameters' in event and event['queryStringParameters'] is not None:
+        if 'from' in event['queryStringParameters']:
+            from_date = datetime.datetime.strptime(event['queryStringParameters']['from'], '%Y-%m-%d')
+        if 'to' in event['queryStringParameters']:
+            to_date = datetime.datetime.strptime(event['queryStringParameters']['to'], '%Y-%m-%d')
+        if 'save' in event['queryStringParameters']:
+            save_to_blob = event['queryStringParameters']['save']
 
     delta_days = to_date - from_date
     if delta_days.days > MAX_DELTA_DAYS:
         from_date = default_from_date
         to_date = default_to_date
 
-    data = {
-        "event_type": "surgery",
-        "start": from_date.strftime("%Y-%m-%d"),
-        "end": to_date.strftime("%Y-%m-%d")
-    }
+    data = {'event_type': 'surgery', 'start': from_date.strftime('%Y-%m-%d'), 'end': to_date.strftime('%Y-%m-%d')}
 
     if service == Service.HMC.value:
         from connectors.HMC.fetch import get_url, get_headers, get_data
@@ -148,7 +145,7 @@ def lambda_handler(event, context):
 
     records_array = get_data(url, data, headers)
     if records_array is None:
-        return handle_error_response({"statusCode": 200, "error": "fail to fetch data"})
+        return handle_error_response({'statusCode': 200, 'error': 'fail to fetch data'})
 
     method = event['path'].rsplit('/', 1)[-1]
     if method == 'v2':
@@ -162,20 +159,12 @@ def lambda_handler(event, context):
     if save_to_blob:
         try:
             s3 = boto3.resource('s3')
-            s3object = s3.Object(os.environ['BUCKET_NAME'],
-                                 'fetch.{}.json'.format(datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
-            s3object.put(
-                Body=response_fetch
+            s3object = s3.Object(
+                os.environ['BUCKET_NAME'], 'fetch.{}.json'.format(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
             )
-            print("Success: Saved to S3")
+            s3object.put(Body=response_fetch)
+            print('Success: Saved to S3')
         except Exception as e:
-            print("Error: {}".format(e))
+            print('Error: {}'.format(e))
 
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json"
-        },
-        "body": response_fetch
-
-    }
+    return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': response_fetch}

@@ -32,13 +32,14 @@ def update_block_allocation_and_usage():
         bucket=BUCKET_NAME_FETCH,
         last_date=last_date,
         morning_start_time=MORNING_START_TIME,
-        morning_end_time=MORNING_END_TIME
+        morning_end_time=MORNING_END_TIME,
     )
 
     delta_scheduled_df, delta_allocation_df = compute_scheduled_and_allocation_dfs(delta_file_names)
 
-    df_scheduled_combined, df_allocation_combined = concat_delta_to_dbs(delta_scheduled_df, scheduled_db,
-                                                                        delta_allocation_df, allocation_db)
+    df_scheduled_combined, df_allocation_combined = concat_delta_to_dbs(
+        delta_scheduled_df, scheduled_db, delta_allocation_df, allocation_db
+    )
 
     print('now uploading to s3')
     # upload to s3
@@ -78,11 +79,11 @@ def get_scheduled_and_allocation_dbs():
         allocation_db = get_s3_object(BLOCK_ALLOCATION_DB_FILE_NAME, BUCKET_NAME_DB)
         last_date = datetime.strptime(scheduled_db['start_date'].max(), '%Y-%m-%d')
     except Exception:  # noqa
-        print("DBs do not exist, need to create new ones, returning default last date")
+        print('DBs do not exist, need to create new ones, returning default last date')
         last_date = datetime(year=2023, month=1, day=1)
 
     return scheduled_db, allocation_db, last_date
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     update_block_allocation_and_usage()

@@ -34,11 +34,11 @@ def create_surgery(appointment, patients_dict, blocks):
                     surgery_duration=appointment['minutesDuration'],
                     procedure_code=12345,
                     procedure_name=appointment['description'],
-                    procedure_icd=12345
+                    procedure_icd=12345,
                 )
             ]
         ),
-        anesthesia='y' if parent_block.anesthetist_name else 'n'
+        anesthesia='y' if parent_block.anesthetist_name else 'n',
     )
 
 
@@ -52,7 +52,7 @@ def create_block(block, blocks_main_surgeon_dict):
         doctor_name=blocks_main_surgeon_dict.get(block.id, {}).get('surgeon', 'placeholder'),
         doctor_id=blocks_main_surgeon_dict.get(block.id, {}).get('id', '123456789'),
         nurse_name=blocks_main_surgeon_dict.get(block.id, {}).get('nurses', None),
-        anesthetist_name=blocks_main_surgeon_dict.get(block.id, {}).get('anesthetist', None)
+        anesthetist_name=blocks_main_surgeon_dict.get(block.id, {}).get('anesthetist', None),
     )
 
 
@@ -62,9 +62,9 @@ def get_url():
 
 def get_headers(event):
     headers = {
-        "source": 'mock',
-        "Content-Type": "application/fhir+json;charset=utf-8",
-        "gmix_serviceid": event['headers'].get('gmix_serviceid')
+        'source': 'mock',
+        'Content-Type': 'application/fhir+json;charset=utf-8',
+        'gmix_serviceid': event['headers'].get('gmix_serviceid'),
     }
     return headers
 
@@ -74,25 +74,29 @@ def zip_names_and_ids(practitioners):
 
 
 def get_data(url, data, headers):
-    client = SyncFHIRClient(
-        url,
-        extra_headers=headers
+    client = SyncFHIRClient(url, extra_headers=headers)
+
+    appointments = (
+        client.resources('Appointment')
+        .search(date__ge=data['start'], date__lt=data['end'], status='booked', _count=10**5)
+        .fetch()
     )
 
-    appointments = client.resources("Appointment").search(date__ge=data['start'], date__lt=data['end'], status="booked",
-                                                          _count=10 ** 5).fetch()
+    slots = client.resources('Slot').search(start__ge=data['start'], start__lt=data['end'], _count=10**5).fetch()
 
-    slots = client.resources("Slot").search(start__ge=data['start'], start__lt=data['end'], _count=10 ** 5).fetch()
+    patients_dict = {patient.id: patient for patient in client.resources('Patient').search(_count=10**5).fetch()}
 
-    patients_dict = {patient.id: patient for patient in client.resources("Patient").search(_count=10 ** 5).fetch()}
-
-    blocks_main_surgeon_dict = {appointment.slot[0].id: {
-        'id': appointment['participant'][2].actor.id,
-        'surgeon': appointment['participant'][2].actor.display,
-        'nurses': zip_names_and_ids(appointment['participant'][3:5]),
-        'anesthetist': zip_names_and_ids([appointment['participant'][5]]) if len(
-            appointment['participant']) > 5 else None
-    } for appointment in appointments}
+    blocks_main_surgeon_dict = {
+        appointment.slot[0].id: {
+            'id': appointment['participant'][2].actor.id,
+            'surgeon': appointment['participant'][2].actor.display,
+            'nurses': zip_names_and_ids(appointment['participant'][3:5]),
+            'anesthetist': zip_names_and_ids([appointment['participant'][5]])
+            if len(appointment['participant']) > 5
+            else None,
+        }
+        for appointment in appointments
+    }
 
     blocks = {block.id: create_block(block, blocks_main_surgeon_dict) for block in slots}
 
@@ -109,25 +113,18 @@ def update_data(url, data, headers):
 
     entries = [
         {
-            "resource": {
-                "resourceType": "Binary",
-                "contentType": "application/json-patch+json",
-                "data": base64.b64encode(json.dumps(create_patch(resource)).encode('ascii')).decode('ascii')
+            'resource': {
+                'resourceType': 'Binary',
+                'contentType': 'application/json-patch+json',
+                'data': base64.b64encode(json.dumps(create_patch(resource)).encode('ascii')).decode('ascii'),
             },
-            "request": {
-                "method": "PATCH",
-                "url": f"{resource['resource_type']}/{resource['id']}"
-            },
-            "fullUrl": resource['id']
+            'request': {'method': 'PATCH', 'url': f"{resource['resource_type']}/{resource['id']}"},
+            'fullUrl': resource['id'],
         }
         for resource in resources
     ]
 
-    request_data = {
-        "resourceType": "Bundle",
-        "type": "transaction",
-        "entry": entries
-    }
+    request_data = {'resourceType': 'Bundle', 'type': 'transaction', 'entry': entries}
 
     return requests.post(url=url, data=json.dumps(request_data), headers=headers)
 
@@ -146,55 +143,46 @@ def create_patch(resource):
 def create_slot_patch(slot):
     return [
         {
-            "op": "replace",
-            "path": "/extension/0",
-            "value": {
-                "valueReference": {
-                    "reference": f"Location/{slot['roomId']}",
-                    "display": slot['roomId']
-                },
-                "url": "http://example.com/extensions#location"
-            }
+            'op': 'replace',
+            'path': '/extension/0',
+            'value': {
+                'valueReference': {'reference': f"Location/{slot['roomId']}", 'display': slot['roomId']},
+                'url': 'http://example.com/extensions#location',
+            },
         },
         {
-            "op": "replace",
-            "path": "/start",
-            "value": datetime.strptime(slot['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
+            'op': 'replace',
+            'path': '/start',
+            'value': datetime.strptime(slot['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat(),
         },
-        {
-            "op": "replace",
-            "path": "/end",
-            "value": datetime.strptime(slot['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
-        }
+        {'op': 'replace', 'path': '/end', 'value': datetime.strptime(slot['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()},
     ]
 
 
 def create_appointment_patch(appointment):
     return [
         {
-            "op": "replace",
-            "path": "/participant/0/actor",
-            "value": {
-                "reference": f"Location/{appointment['roomId']}",
-                "display": appointment['roomId']
-            }
-
+            'op': 'replace',
+            'path': '/participant/0/actor',
+            'value': {'reference': f"Location/{appointment['roomId']}", 'display': appointment['roomId']},
         },
         {
-            "op": "replace",
-            "path": "/start",
-            "value": datetime.strptime(appointment['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
+            'op': 'replace',
+            'path': '/start',
+            'value': datetime.strptime(appointment['startTime'], '%Y-%m-%dT%H:%M:%S').isoformat(),
         },
         {
-            "op": "replace",
-            "path": "/end",
-            "value": datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat()
-        }
-        ,
+            'op': 'replace',
+            'path': '/end',
+            'value': datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S').isoformat(),
+        },
         {
-            "op": "replace",
-            "path": "/minutesDuration",
-            "value": (datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S') - datetime.strptime(
-                appointment['startTime'], '%Y-%m-%dT%H:%M:%S')).total_seconds() // 60
-        }
+            'op': 'replace',
+            'path': '/minutesDuration',
+            'value': (
+                datetime.strptime(appointment['endTime'], '%Y-%m-%dT%H:%M:%S')
+                - datetime.strptime(appointment['startTime'], '%Y-%m-%dT%H:%M:%S')
+            ).total_seconds()
+            // 60,
+        },
     ]
