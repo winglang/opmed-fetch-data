@@ -31,56 +31,46 @@ def get_blocks_status(start, end, tenant):
     table = dynamodb.Table(blocks_status_table_name)
 
     response = table.query(
-        KeyConditionExpression=Key('tenant_id').eq(tenant),
-        FilterExpression=Attr('start').between(start, end)
+        KeyConditionExpression=Key('tenant_id').eq(tenant), FilterExpression=Attr('start').between(start, end)
     )
 
-    return {block['data_id']: {k: v for k, v in block.items() if k in BLOCK_FIELDS_TO_RETURN} for block in
-            response['Items']}
+    return {
+        block['data_id']: {k: v for k, v in block.items() if k in BLOCK_FIELDS_TO_RETURN} for block in response['Items']
+    }
 
 
 def get_blocks_predictions(fetch_data, headers):
     data_to_predict = {
-        'blocks': fetch_data["blocks"],
-        'tasks': fetch_data["tasks"],
-        "metadata": {
-            "use_ai_predictions": True,
-            "min_task_pred_abs": 15,
-            "min_task_pred_percent": 0,
-            "min_block_pred_abs": 0,
-            "min_block_pred_percent": 0,
-            "ignored_tasks_list": [],
-            "ignored_blocks_list": []
-        }
+        'blocks': fetch_data['blocks'],
+        'tasks': fetch_data['tasks'],
+        'metadata': {
+            'use_ai_predictions': True,
+            'min_task_pred_abs': 15,
+            'min_task_pred_percent': 0,
+            'min_block_pred_abs': 0,
+            'min_block_pred_percent': 0,
+            'ignored_tasks_list': [],
+            'ignored_blocks_list': [],
+        },
     }
 
     event = {
         'headers': headers,
         'path': 'invoked_by_proactive_block_release/algo/block-population-risk',
-        'body': json.dumps(data_to_predict)
+        'body': json.dumps(data_to_predict),
     }
 
     try:
         predict_blocks_res = invoke_lambda_function(predict_blocks_lambda_name, event)
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "error": str(e)
-        }
-    return {
-        "statusCode": 200,
-        "body": predict_blocks_res['blocks']
-    }
+        return {'statusCode': 500, 'error': str(e)}
+    return {'statusCode': 200, 'body': predict_blocks_res['blocks']}
 
 
 def invoke_fetch_data(query_string_parameters, headers):
     query_string_parameters = {key: val for key, val in query_string_parameters.items() if key in ['from', 'to']}
 
-    event = {
-        "queryStringParameters": query_string_parameters,
-        'headers': headers,
-        'path': '/fetch-data/v2'
-    }
+    event = {'queryStringParameters': query_string_parameters, 'headers': headers, 'path': '/fetch-data/v2'}
 
     return invoke_lambda_function(fetch_data_lambda_name, event)
 
@@ -117,8 +107,9 @@ def proactive_block_realise_handler(event, context):
 
     with ThreadPoolExecutor() as executor:
         get_blocks_predictions_future = executor.submit(get_blocks_predictions, fetch_data, headers_for_identification)
-        get_blocks_status_future = executor.submit(get_blocks_status, queryStringParameters['from'],
-                                                   queryStringParameters['to'], tenant)
+        get_blocks_status_future = executor.submit(
+            get_blocks_status, queryStringParameters['from'], queryStringParameters['to'], tenant
+        )
 
         blocks_predictions_res = get_blocks_predictions_future.result()
         blocks_status = get_blocks_status_future.result()
@@ -130,33 +121,23 @@ def proactive_block_realise_handler(event, context):
         response_body = json.dumps(predicted_blocks, cls=DecimalEncoder)
     else:
         response_body = blocks_predictions_res['error']
-    save_to_s3 = (event.get("queryStringParameters") or {}).get("save_to_s3", False)
+    save_to_s3 = (event.get('queryStringParameters') or {}).get('save_to_s3', False)
     if save_to_s3:
         s3_key = os.path.join(tenant, json_file_name)
         bucket_name = os.environ['BUCKET_NAME']
         try:
             s3 = boto3.client('s3')
 
-            s3.put_object(
-                Bucket=bucket_name,
-                Key=s3_key,
-                Body=json.dumps(response_body)
-            )
+            s3.put_object(Bucket=bucket_name, Key=s3_key, Body=json.dumps(response_body))
 
-            s3.put_object_acl(
-                Bucket=bucket_name,
-                Key=s3_key,
-                ACL='authenticated-read'
-            )
+            s3.put_object_acl(Bucket=bucket_name, Key=s3_key, ACL='authenticated-read')
 
-            print("Success: Saved to S3")
+            print('Success: Saved to S3')
         except Exception as e:
-            print("Error: {}".format(e))
+            print('Error: {}'.format(e))
 
     return {
-        "statusCode": blocks_predictions_res['statusCode'],
-        "headers": {
-            "Content-Type": "application/json"
-        },
-        "body": response_body
+        'statusCode': blocks_predictions_res['statusCode'],
+        'headers': {'Content-Type': 'application/json'},
+        'body': response_body,
     }

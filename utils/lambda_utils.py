@@ -9,7 +9,7 @@ def invoke_lambda_function(function_name, event):
     response = lambda_client.invoke(
         FunctionName=function_name,
         InvocationType='RequestResponse',  # or 'Event' for asynchronous
-        Payload=json.dumps(event)
+        Payload=json.dumps(event),
     )
 
     # Read the response (if needed)
