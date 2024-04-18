@@ -5,6 +5,7 @@ from utils.lambda_utils import invoke_lambda_function
 
 fetch_data_lambda_name = os.getenv('FETCH_DATA_LAMBDA_NAME')
 predict_blocks_lambda_name = os.getenv('PREDICT_BLOCKS_LAMBDA_NAME')
+get_tenant_params_lambda_name = os.getenv('GET_TENANT_PARAMS_LAMBDA_NAME')
 
 
 def get_blocks_predictions(fetch_data, headers):
@@ -24,7 +25,7 @@ def get_blocks_predictions(fetch_data, headers):
 
     event = {
         'headers': headers,
-        'path': 'invoked_by_proactive_block_release/algo/block-population-risk',
+        'path': 'invoked_by_lambda/algo/block-population-risk',
         'body': json.dumps(data_to_predict),
     }
 
@@ -41,3 +42,9 @@ def invoke_fetch_data(query_string_parameters, headers):
     event = {'queryStringParameters': query_string_parameters, 'headers': headers, 'path': '/fetch-data/v2'}
 
     return invoke_lambda_function(fetch_data_lambda_name, event)
+
+
+def get_tenant_params(headers):
+    event = {'headers': headers, 'path': 'invoked_by_lambda/api/v1/tenants-params'}
+
+    return invoke_lambda_function(get_tenant_params_lambda_name, event)
