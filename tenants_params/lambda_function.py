@@ -42,11 +42,11 @@ def lambda_handler(event, context):
     if http_method == 'GET' and len(path_splits) == 4:
         all_data = get_all_data_for_tenant(service)
         print('Read all data. data:', all_data)
-        try:
+        if event.get('headers', {}).get('cookie', None):
             auth = get_auth_cookie_data(
                 event
             )  # Patch for develop to get all the groups from cookie. Switch with proprietary api
-        except Exception:
+        else:
             auth = {}
         return {
             'statusCode': 200,
