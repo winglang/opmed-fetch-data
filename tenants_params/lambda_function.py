@@ -42,7 +42,12 @@ def lambda_handler(event, context):
     if http_method == 'GET' and len(path_splits) == 4:
         all_data = get_all_data_for_tenant(service)
         print('Read all data. data:', all_data)
-        auth = get_auth_cookie_data(event)
+        try:
+            auth = get_auth_cookie_data(
+                event
+            )  # Patch for develop to get all the groups from cookie. Switch with proprietary api
+        except Exception:
+            auth = {}
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'auth-data': json.dumps(auth)},
@@ -117,7 +122,7 @@ def handle_rest_request(http_method, tenant_id, section_id, data) -> bool | None
 
     elif http_method == 'POST':
         # Create a new item is not supported.
-        raise ValueError(f'Invalid operation')
+        raise ValueError('Invalid operation')
 
     elif http_method == 'PUT':
         # Update an existing item
@@ -125,7 +130,7 @@ def handle_rest_request(http_method, tenant_id, section_id, data) -> bool | None
 
     elif http_method == 'DELETE':
         # Delete an item is not supported.
-        raise ValueError(f'Invalid operation')
+        raise ValueError('Invalid operation')
 
     else:
         raise ValueError(f'Unsupported HTTP method: {http_method}')
