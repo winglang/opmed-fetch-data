@@ -3,7 +3,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from flex_block.get_potential_flex_blocks import get_potential_flex_blocks
+from flex_blocks.get_potential_flex_blocks import get_potential_flex_blocks
 from utils.api_utils import invoke_fetch_data
 from utils.dynamodb_accessor import get_blocks_status
 from utils.encoders import GeneralEncoder
