@@ -10,11 +10,9 @@ from utils.encoders import GeneralEncoder
 from utils.s3_utils import store_s3_with_acl
 from utils.services_utils import lowercase_headers, get_username, get_service
 
-fetch_data_lambda_name = os.getenv('FETCH_DATA_LAMBDA_NAME')
 json_file_name = os.getenv('JSON_FILE_NAME')
-predict_blocks_lambda_name = os.getenv('PREDICT_BLOCKS_LAMBDA_NAME')
-
 blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
+
 DB_FIELDS_PROJECTION = {'data_id', 'lastUpdated', 'blockStatus'}
 
 
