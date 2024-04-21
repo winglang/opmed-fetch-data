@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from boto3.dynamodb.conditions import Attr
 from boto3.dynamodb.conditions import Key
 
 
@@ -204,3 +205,19 @@ def get_update_params(body):
         update_values[f':{key}'] = val
 
     return ''.join(update_expression)[:-1], update_values
+
+
+def get_blocks_status(start, end, tenant, table_name, fields_to_return: set = None):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(table_name)
+
+    query_params = {
+        'KeyConditionExpression': Key('tenant_id').eq(tenant),
+        'FilterExpression': Attr('start').between(start, end),
+    }
+    if fields_to_return is not None:
+        query_params['ProjectionExpression'] = ', '.join(fields_to_return | {'data_id'})
+
+    response = table.query(**query_params)
+
+    return {block['data_id']: block for block in response['Items']}
