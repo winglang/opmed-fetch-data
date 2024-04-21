@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         if event.get('headers', {}).get('cookie', None):
             auth = get_auth_cookie_data(
                 event
-            )  # Patch for develop to get all the groups from cookie. Switch with proprietary api
+            )  # TODO Patch for develop to get all the groups from cookie. Switch with proprietary api
         else:
             auth = {}
         return {
