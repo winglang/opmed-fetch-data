@@ -45,6 +45,9 @@ def invoke_fetch_data(query_string_parameters, headers):
 
 
 def get_tenant_params(headers):
-    event = {'headers': headers, 'path': 'invoked_by_lambda/api/v1/tenants-params'}
+    event = {
+        'headers': headers,
+        'requestContext': {'http': {'method': 'GET', 'path': '/api/v1/tenants-params'}},
+    }
 
     return invoke_lambda_function(get_tenant_params_lambda_name, event)
