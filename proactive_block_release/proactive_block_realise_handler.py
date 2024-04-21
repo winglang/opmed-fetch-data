@@ -1,40 +1,19 @@
-import decimal
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
 
 from utils.api_utils import invoke_fetch_data, get_blocks_predictions
+from utils.dynamodb_accessor import get_blocks_status
+from utils.encoders import DecimalEncoder
 from utils.services_utils import lowercase_headers, get_username, get_service
 
 json_file_name = os.getenv('JSON_FILE_NAME')
 blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
 
-BLOCK_FIELDS_TO_RETURN = ['lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease']
-
-
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            return int(o)
-        return super().default(o)
-
-
-def get_blocks_status(start, end, tenant):
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(blocks_status_table_name)
-
-    response = table.query(
-        KeyConditionExpression=Key('tenant_id').eq(tenant), FilterExpression=Attr('start').between(start, end)
-    )
-
-    return {
-        block['data_id']: {k: v for k, v in block.items() if k in BLOCK_FIELDS_TO_RETURN}
-        for block in response['Items']  # TODO use projection expression
-    }
+DB_FIELDS_PROJECTION = ['lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease']
 
 
 def proactive_block_realise_handler(event, context):
@@ -70,7 +49,12 @@ def proactive_block_realise_handler(event, context):
     with ThreadPoolExecutor() as executor:
         get_blocks_predictions_future = executor.submit(get_blocks_predictions, fetch_data, headers_for_identification)
         get_blocks_status_future = executor.submit(
-            get_blocks_status, queryStringParameters['from'], queryStringParameters['to'], tenant
+            get_blocks_status,
+            queryStringParameters['from'],
+            queryStringParameters['to'],
+            tenant,
+            blocks_status_table_name,
+            DB_FIELDS_PROJECTION,
         )
 
         blocks_predictions_res = get_blocks_predictions_future.result()
