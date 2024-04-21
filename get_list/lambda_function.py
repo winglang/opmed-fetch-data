@@ -37,7 +37,11 @@ def lambda_handler(event, context):
     if not valid_service(service):
         return handle_error_response(service)
 
-    method = event['path'].rsplit('/', 1)[-1]
+    if 'rawPath' in event:
+        path = event['rawPath']
+    elif 'path' in event:
+        path = event['path']
+    method = path.rsplit('/', 1)[-1]
     if method == 'get-list-cache':
         method = 'alternative-plans'
 
