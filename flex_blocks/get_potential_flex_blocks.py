@@ -68,7 +68,3 @@ def get_adjacent_gaps(blocks_df, working_hours):
     blocks_df['left_gap'] = gaps[:-1].tolist()
     blocks_df['right_gap'] = gaps[1:].tolist()
     return blocks_df
-
-
-def is_potential_flex_block(block, queryStringParameters):
-    pass
