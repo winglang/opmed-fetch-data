@@ -57,12 +57,12 @@ def flex_block_handler(event, context):
         )
 
         flex_blocks_res = get_potential_flex_blocks_future.result()
-        blocks_status = get_blocks_status_future.result()
+        blocks_status_res = get_blocks_status_future.result()
 
     if flex_blocks_res['statusCode'] == 200:
         flex_blocks = flex_blocks_res['body']
         for block_id, block in flex_blocks.items():
-            flex_blocks[block_id] |= blocks_status.get(block_id, {'blockStatus': 'new'})
+            flex_blocks[block_id] |= blocks_status_res.get(block_id, {'blockStatus': 'new'})
         response_body = json.dumps(flex_blocks, cls=GeneralEncoder, sort_keys=True)
     else:
         response_body = flex_blocks_res['error']

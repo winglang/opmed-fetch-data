@@ -2,7 +2,7 @@ import pandas as pd
 
 from utils.api_utils import get_tenant_params, get_blocks_predictions
 
-FLEX_BLOCK_FIELDS = [
+FLEX_BLOCK_RESPONSE_FIELDS = [
     'start',
     'end',
     'duration',
@@ -39,7 +39,7 @@ def get_potential_flex_blocks(fetch_data, headers):
         blocks_df = blocks_df.groupby(['day', 'resourceId']).apply(get_adjacent_gaps, working_hours)
         blocks_df.set_index('id', inplace=True)
 
-        blocks_df = blocks_df[FLEX_BLOCK_FIELDS]
+        blocks_df = blocks_df[FLEX_BLOCK_RESPONSE_FIELDS]
 
         return {'statusCode': 200, 'body': blocks_df.to_dict(orient='index')}
     except Exception as e:
