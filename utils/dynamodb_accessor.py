@@ -207,7 +207,7 @@ def get_update_params(body):
     return ''.join(update_expression)[:-1], update_values
 
 
-def get_blocks_status(start, end, tenant, table_name, fields_to_return=None):
+def get_blocks_status(start, end, tenant, table_name, fields_to_return: set = None):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
 
@@ -216,8 +216,8 @@ def get_blocks_status(start, end, tenant, table_name, fields_to_return=None):
         'FilterExpression': Attr('start').between(start, end),
     }
     if fields_to_return is not None:
-        query_params['ProjectionExpression'] = ', '.join(fields_to_return)
+        query_params['ProjectionExpression'] = ', '.join(fields_to_return | {'data_id'})
 
     response = table.query(**query_params)
 
-    return response
+    return {block['data_id']: block for block in response['Items']}

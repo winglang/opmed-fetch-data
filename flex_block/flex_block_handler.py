@@ -1,25 +1,21 @@
-import decimal
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-import boto3
-import pandas as pd
-
 from flex_block.get_potential_flex_blocks import get_potential_flex_blocks
-from utils.api_utils import invoke_fetch_data, get_blocks_predictions
+from utils.api_utils import invoke_fetch_data
+from utils.dynamodb_accessor import get_blocks_status
+from utils.encoders import GeneralEncoder
+from utils.s3_utils import store_s3_with_acl
 from utils.services_utils import lowercase_headers, get_username, get_service
 
 fetch_data_lambda_name = os.getenv('FETCH_DATA_LAMBDA_NAME')
 json_file_name = os.getenv('JSON_FILE_NAME')
 predict_blocks_lambda_name = os.getenv('PREDICT_BLOCKS_LAMBDA_NAME')
 
-
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            return int(o)
-        return super().default(o)
+blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
+DB_FIELDS_PROJECTION = {'data_id', 'lastUpdated', 'blockStatus'}
 
 
 def flex_block_handler(event, context):
@@ -52,32 +48,37 @@ def flex_block_handler(event, context):
         if 'resources_ids' in task:
             task['resources'] = task.pop('resources_ids')
 
-    blocks_predictions_res = get_blocks_predictions(fetch_data, headers_for_identification)
+    with ThreadPoolExecutor() as executor:
+        get_potential_flex_blocks_future = executor.submit(
+            get_potential_flex_blocks, fetch_data, headers_for_identification
+        )
+        get_blocks_status_future = executor.submit(
+            get_blocks_status,
+            queryStringParameters['from'],
+            queryStringParameters['to'],
+            tenant,
+            blocks_status_table_name,
+            DB_FIELDS_PROJECTION,
+        )
 
-    if blocks_predictions_res['statusCode'] == 200:
-        predicted_blocks = blocks_predictions_res['body']
-        predicted_blocks_df = pd.DataFrame(predicted_blocks)
-        potential_flex_blocks = get_potential_flex_blocks(predicted_blocks_df, queryStringParameters)
-        response_body = json.dumps(potential_flex_blocks, cls=DecimalEncoder)
+        flex_blocks_res = get_potential_flex_blocks_future.result()
+        blocks_status = get_blocks_status_future.result()
+
+    if flex_blocks_res['statusCode'] == 200:
+        flex_blocks = flex_blocks_res['body']
+        for block_id, block in flex_blocks.items():
+            flex_blocks[block_id] |= blocks_status.get(block_id, {'blockStatus': 'new'})
+        response_body = json.dumps(flex_blocks, cls=GeneralEncoder, sort_keys=True)
     else:
-        response_body = blocks_predictions_res['error']
+        response_body = flex_blocks_res['error']
     save_to_s3 = (event.get('queryStringParameters') or {}).get('save_to_s3', False)
     if save_to_s3:
         s3_key = os.path.join(tenant, json_file_name)
         bucket_name = os.environ['BUCKET_NAME']
-        try:
-            s3 = boto3.client('s3')
-
-            s3.put_object(Bucket=bucket_name, Key=s3_key, Body=json.dumps(response_body))
-
-            s3.put_object_acl(Bucket=bucket_name, Key=s3_key, ACL='authenticated-read')
-
-            print('Success: Saved to S3')
-        except Exception as e:
-            print('Error: {}'.format(e))
+        store_s3_with_acl(bucket_name, s3_key, response_body)
 
     return {
-        'statusCode': blocks_predictions_res['statusCode'],
+        'statusCode': flex_blocks_res['statusCode'],
         'headers': {'Content-Type': 'application/json'},
         'body': response_body,
     }

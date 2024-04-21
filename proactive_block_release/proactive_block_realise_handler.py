@@ -3,17 +3,16 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-import boto3
-
 from utils.api_utils import invoke_fetch_data, get_blocks_predictions
 from utils.dynamodb_accessor import get_blocks_status
-from utils.encoders import DecimalEncoder
+from utils.encoders import GeneralEncoder
+from utils.s3_utils import store_s3_with_acl
 from utils.services_utils import lowercase_headers, get_username, get_service
 
 json_file_name = os.getenv('JSON_FILE_NAME')
 blocks_status_table_name = os.getenv('BLOCKS_STATUS_TABLE_NAME')
 
-DB_FIELDS_PROJECTION = ['lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease']
+DB_FIELDS_PROJECTION = {'data_id', 'lastUpdated', 'releaseStatus', 'acceptedMinutesToRelease'}
 
 
 def proactive_block_realise_handler(event, context):
@@ -64,23 +63,14 @@ def proactive_block_realise_handler(event, context):
         predicted_blocks = blocks_predictions_res['body']
         for block in predicted_blocks:
             block |= blocks_status.get(block['id'], {'releaseStatus': 'new'})
-        response_body = json.dumps(predicted_blocks, cls=DecimalEncoder)
+        response_body = json.dumps(predicted_blocks, cls=GeneralEncoder)
     else:
         response_body = blocks_predictions_res['error']
     save_to_s3 = (event.get('queryStringParameters') or {}).get('save_to_s3', False)
     if save_to_s3:
         s3_key = os.path.join(tenant, json_file_name)
         bucket_name = os.environ['BUCKET_NAME']
-        try:
-            s3 = boto3.client('s3')
-
-            s3.put_object(Bucket=bucket_name, Key=s3_key, Body=json.dumps(response_body))
-
-            s3.put_object_acl(Bucket=bucket_name, Key=s3_key, ACL='authenticated-read')
-
-            print('Success: Saved to S3')
-        except Exception as e:
-            print('Error: {}'.format(e))
+        store_s3_with_acl(bucket_name, s3_key, response_body)
 
     return {
         'statusCode': blocks_predictions_res['statusCode'],
