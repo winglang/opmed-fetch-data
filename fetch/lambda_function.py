@@ -147,7 +147,11 @@ def lambda_handler(event, context):
     if records_array is None:
         return handle_error_response({'statusCode': 200, 'error': 'fail to fetch data'})
 
-    method = event['path'].rsplit('/', 1)[-1]
+    if 'rawPath' in event:
+        path = event['rawPath']
+    elif 'path' in event:
+        path = event['path']
+    method = path.rsplit('/', 1)[-1]
     if method == 'v2':
         records_array = convert_to_algo_model(fetch_data=records_array)
 
