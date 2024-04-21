@@ -1,0 +1,21 @@
+name: Auto Assign PR to Creator
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  assign-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign PR to creator
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [context.actor]
+            })
+          github-token: ${{ secrets.GITHUB_TOKEN }}
