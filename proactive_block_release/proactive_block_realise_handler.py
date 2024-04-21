@@ -1,9 +1,8 @@
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
 
-from utils.api_utils import invoke_fetch_data, get_blocks_predictions
+from utils.api_utils import invoke_fetch_data, get_blocks_predictions, fetch_default_from_value, fetch_default_to_value
 from utils.dynamodb_accessor import get_blocks_status
 from utils.encoders import GeneralEncoder
 from utils.s3_utils import store_s3_with_acl
@@ -29,10 +28,8 @@ def proactive_block_realise_handler(event, context):
     queryStringParameters = event.get('queryStringParameters', {})
     print(f'queryStringParameters: {queryStringParameters}')
 
-    default_from_value = (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d')  # Today + 3 days
-    default_to_value = (datetime.now() + timedelta(days=31)).strftime('%Y-%m-%d')  # Today + 31 days
-    queryStringParameters['from'] = queryStringParameters.get('from', default_from_value)
-    queryStringParameters['to'] = queryStringParameters.get('to', default_to_value)
+    queryStringParameters['from'] = queryStringParameters.get('from', fetch_default_from_value())
+    queryStringParameters['to'] = queryStringParameters.get('to', fetch_default_to_value())
 
     headers_for_identification = {'user-id': username, 'tenant-id': tenant}
     fetch_data = invoke_fetch_data(queryStringParameters, headers_for_identification)

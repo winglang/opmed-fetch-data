@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timedelta
 
 from utils.lambda_utils import invoke_lambda_function
 
@@ -42,6 +43,14 @@ def invoke_fetch_data(query_string_parameters, headers):
     event = {'queryStringParameters': query_string_parameters, 'headers': headers, 'path': '/fetch-data/v2'}
 
     return invoke_lambda_function(fetch_data_lambda_name, event)
+
+
+def fetch_default_from_value():
+    return (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d')  # Today + 3 days
+
+
+def fetch_default_to_value():
+    return (datetime.now() + timedelta(days=31)).strftime('%Y-%m-%d')  # Today + 31 days
 
 
 def get_tenant_params(headers):
