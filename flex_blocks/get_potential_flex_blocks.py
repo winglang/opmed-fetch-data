@@ -13,6 +13,7 @@ FLEX_BLOCK_RESPONSE_FIELDS = [
     'right_gap',
     'room',
     'doctor_id',
+    'block_id',
 ]
 
 
@@ -23,6 +24,7 @@ def get_potential_flex_blocks(fetch_data, headers):
         predicted_blocks = blocks_predictions_res['body']
         blocks_df = pd.DataFrame(predicted_blocks)
 
+        blocks_df['block_id'] = blocks_df['id']
         blocks_df['start'] = pd.to_datetime(blocks_df['start'])
         blocks_df['end'] = pd.to_datetime(blocks_df['end'])
         blocks_df['day'] = blocks_df['start'].dt.floor('d')
@@ -41,7 +43,7 @@ def get_potential_flex_blocks(fetch_data, headers):
 
         blocks_df = blocks_df[FLEX_BLOCK_RESPONSE_FIELDS]
 
-        return {'statusCode': 200, 'body': blocks_df.to_dict(orient='index')}
+        return {'statusCode': 200, 'body': blocks_df.to_dict(orient='records')}
     except Exception as e:
         return {'statusCode': 500, 'error': str(e)}
 
