@@ -2,19 +2,22 @@ import pandas as pd
 
 from utils.api_utils import get_tenant_params, get_blocks_predictions
 
-FLEX_BLOCK_RESPONSE_FIELDS = [
-    'start',
-    'end',
-    'duration',
-    'predicted_start',
-    'predicted_end',
-    'predicted_duration',
-    'left_gap',
-    'right_gap',
-    'room',
-    'doctor_id',
-    'block_id',
-]
+FLEX_BLOCK_RESPONSE_FIELDS = pd.Series(
+    [
+        'start',
+        'end',
+        'duration',
+        'predicted_start',
+        'predicted_end',
+        'predicted_duration',
+        'left_gap',
+        'right_gap',
+        'room',
+        'doctor_id',
+        'block_id',
+        'doctors_license',
+    ]
+)
 
 
 def get_potential_flex_blocks(fetch_data, headers):
@@ -41,7 +44,7 @@ def get_potential_flex_blocks(fetch_data, headers):
         blocks_df = blocks_df.groupby(['day', 'resourceId']).apply(get_adjacent_gaps, working_hours)
         blocks_df.set_index('id', inplace=True)
 
-        blocks_df = blocks_df[FLEX_BLOCK_RESPONSE_FIELDS]
+        blocks_df = blocks_df[FLEX_BLOCK_RESPONSE_FIELDS[FLEX_BLOCK_RESPONSE_FIELDS.isin(blocks_df.columns)]]
 
         return {'statusCode': 200, 'body': blocks_df.to_dict(orient='records')}
     except Exception as e:
