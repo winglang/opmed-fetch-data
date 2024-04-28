@@ -40,7 +40,7 @@ def lambda_handler(event, context):
         return create_error_response(400, 'Invalid request')
 
     # We handle only specific categories.
-    valid_categories = ['surgeons', 'nurses', 'anesthesiologists', 'proactive_blocks_status']
+    valid_categories = ['surgeons', 'nurses', 'anesthesiologists', 'proactive_blocks_status', 'flex_blocks_status']
     resource_category_id = path_splits[4]
     if resource_category_id not in valid_categories:
         print(
@@ -168,7 +168,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
     elif http_method == 'POST':
         # Create a new item
         # check that object does not exist before adding.
-        categories_with_hash_id = ['surgeons', 'proactive_blocks_status']
+        categories_with_hash_id = ['surgeons', 'proactive_blocks_status', 'flex_blocks_status']
         internal_resource_ids = (
             [generate_sha256_hash(resource_id, SALT) for resource_id in resource_ids]
             if category_id in categories_with_hash_id
@@ -203,7 +203,7 @@ def handle_rest_request(http_method, tenant_id, category_id, resource_ids, data)
         return db_accessor.batch_put_item(tenant_id, resource_ids, data, save_nested=save_nested, metadata=metadata)
 
     elif http_method == 'PATCH':
-        allowed_categories = ['proactive_blocks_status']
+        allowed_categories = ['proactive_blocks_status', 'flex_blocks_status']
         if category_id not in allowed_categories:
             raise ValueError(f'Unsupported category for PATCH: {category_id}')
         if len(resource_ids) == 1:
