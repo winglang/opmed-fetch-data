@@ -62,7 +62,7 @@ def flex_block_handler(event, context):
     if flex_blocks_res['statusCode'] == 200:
         flex_blocks = flex_blocks_res['body']
         for block in flex_blocks:
-            block |= blocks_status_res.get(block["block_id"], {'blockStatus': 'new'})
+            block |= blocks_status_res.get(block['block_id'], {'blockStatus': 'new'})
         response_body = json.dumps(flex_blocks, cls=GeneralEncoder, sort_keys=True)
     else:
         response_body = flex_blocks_res['error']
