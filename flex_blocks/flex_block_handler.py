@@ -65,7 +65,7 @@ def flex_block_handler(event, context):
             block |= blocks_status_res.get(block['block_id'], {'blockStatus': 'new'})
         response_body = json.dumps(flex_blocks, cls=GeneralEncoder, sort_keys=True)
     else:
-        response_body = flex_blocks_res['error']
+        return flex_blocks_res
     save_to_s3 = (event.get('queryStringParameters') or {}).get('save_to_s3', False)
     if save_to_s3:
         s3_key = os.path.join(tenant, json_file_name)
