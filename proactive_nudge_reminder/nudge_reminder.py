@@ -12,6 +12,7 @@ from utils.jwt_utils import generate_jwt
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url_surgeon_app = os.getenv('URL_SURGEON_APP')
+url = os.getenv('URL')
 
 nudge_category_to_dv_table_name = {
     'proactive-block-release': 'proactive_blocks_status',
@@ -46,7 +47,9 @@ def send_reminder(event, context):
     link_for_surgeon = create_link(tenant, doctor_id)
     nudge_content = request_body.get('content', '')
 
-    path_splits = event['path'].rsplit('/', maxsplit=2)
+    path = event['requestContext']['http']['path']
+
+    path_splits = path[1:].split('/')
     nudge_method = path_splits[-1]
     nudge_category = path_splits[-2] if path_splits[-2] != 'nudge_reminder' else 'proactive-block-release'
 
@@ -78,8 +81,7 @@ def send_reminder(event, context):
 
     block_status_name = nudge_category_to_dv_table_name[nudge_category]
 
-    url = event['path'].split('/')[0]
-    update_blocks_status(url, blocks, headers, block_status_name)
+    update_blocks_status(blocks, headers, block_status_name)
     print(f"Updated blocks statuses to pending: {[block["blockId"] for block in blocks]}")
 
     return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': res}
@@ -91,7 +93,7 @@ def create_link(tenant: str, user_id: str) -> str:
     return url_surgeon_app + '?' + urlencode(params, doseq=True)
 
 
-def update_blocks_status(url: str, blocks: list, headers: dict, block_status_name: str) -> None:
+def update_blocks_status(blocks: list, headers: dict, block_status_name: str) -> None:
     for block in blocks:
         block['releaseStatus'] = 'pending'
         block['expired_at'] = int(datetime.fromisoformat(block['start']).timestamp())
