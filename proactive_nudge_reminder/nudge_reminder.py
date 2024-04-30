@@ -51,7 +51,7 @@ def send_reminder(event, context):
 
     path_splits = path[1:].split('/')
     nudge_method = path_splits[-1]
-    nudge_category = path_splits[-2] if path_splits[-2] != 'nudge_reminder' else 'proactive-block-release'
+    nudge_category = path_splits[-2] if path_splits[-2] != 'nudge-reminder' else 'proactive-block-release'
 
     if nudge_category not in nudge_category_to_dv_table_name.keys():
         return {
