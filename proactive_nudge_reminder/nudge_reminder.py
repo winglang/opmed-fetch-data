@@ -13,6 +13,11 @@ from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, 
 url = os.getenv('URL')
 url_surgeon_app = os.getenv('URL_SURGEON_APP')
 
+nudge_category_to_dv_table_name = {
+    'proactive-block-release': 'proactive_blocks_status',
+    'flex_blocks': 'flex_blocks_status',
+}
+
 
 def send_reminder(event, context):
     if lowercase_headers(event):
@@ -41,9 +46,26 @@ def send_reminder(event, context):
     link_for_surgeon = create_link(tenant, doctor_id)
     nudge_content = request_body.get('content', '')
 
-    method = event['path'].rsplit('/', 1)[-1]
-    print(f'Nudge method is: {method}')
-    match method:
+    path_splits = event['path'].rsplit('/', maxsplit=2)
+    nudge_method = path_splits[-1]
+    nudge_category = path_splits[-2] if path_splits[-2] != 'nudge_reminder' else 'proactive-block-release'
+
+    match nudge_category:
+        case 'proactive-block-release':
+            block_status_name = 'proactive_blocks_status'
+        case 'flex_blocks':
+            block_status_name = 'flex_blocks_status'
+        case _:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': f'Category not allowed: {nudge_category}',
+            }
+
+    print(f'Nudge method is: {nudge_method}')
+    print(f'Nudge category is: {nudge_category}')
+
+    match nudge_method:
         case 'send-email':
             subject = 'Request for unused block time release'
             email = {'html': get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)}
@@ -58,12 +80,12 @@ def send_reminder(event, context):
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json'},
-                'body': f'Method not found: {method}',
+                'body': f'Method not found: {nudge_method}',
             }
 
-    print(f'Sent nudge to {recipients} with method: {method}')
+    print(f'Sent nudge to {recipients} with method: {nudge_method}')
 
-    update_blocks_status(blocks, headers)
+    update_blocks_status(blocks, headers, block_status_name)
     print(f"Updated blocks statuses to pending: {[block["blockId"] for block in blocks]}")
 
     return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': res}
@@ -98,11 +120,11 @@ def create_link(tenant: str, user_id: str) -> str:
     return url_surgeon_app + '?' + urlencode(params, doseq=True)
 
 
-def update_blocks_status(blocks: list, headers: dict) -> None:
+def update_blocks_status(blocks: list, headers: dict, block_status_name: str) -> None:
     for block in blocks:
         block['releaseStatus'] = 'pending'
         block['expired_at'] = int(datetime.fromisoformat(block['start']).timestamp())
 
     block_ids = [block['blockId'] for block in blocks]
-    update_url = f'{url}/api/v1/resources/proactive_blocks_status/bundle'
+    update_url = f'{url}/api/v1/resources/{block_status_name}/bundle'
     requests.put(update_url, json=blocks, params={'ids': block_ids}, headers=headers)
