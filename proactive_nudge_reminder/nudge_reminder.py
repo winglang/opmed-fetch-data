@@ -5,9 +5,8 @@ from urllib.parse import urlencode
 
 import requests
 
+from proactive_nudge_reminder.proactive_block_release_notification import send_proactive_block_release_notification
 from utils.jwt_utils import generate_jwt
-from utils.send_notification.send_email import send_email
-from utils.send_notification.send_sms import send_sms
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
 url = os.getenv('URL')
@@ -50,41 +49,27 @@ def send_reminder(event, context):
     nudge_method = path_splits[-1]
     nudge_category = path_splits[-2] if path_splits[-2] != 'nudge_reminder' else 'proactive-block-release'
 
-    match nudge_category:
-        case 'proactive-block-release':
-            block_status_name = 'proactive_blocks_status'
-        case 'flex_blocks':
-            block_status_name = 'flex_blocks_status'
-        case _:
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json'},
-                'body': f'Category not allowed: {nudge_category}',
-            }
+    if nudge_category not in nudge_category_to_dv_table_name.keys():
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+            'body': f'Category not allowed: {nudge_category}',
+        }
 
     print(f'Nudge method is: {nudge_method}')
     print(f'Nudge category is: {nudge_category}')
 
-    match nudge_method:
-        case 'send-email':
-            subject = 'Request for unused block time release'
-            email = {'html': get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)}
-            send_email(subject=subject, body=email, recipients=recipients)
-            res = 'Sent nudge email'
-        case 'send-sms':
-            sms_txt = get_sms_content(doctor_name, link_for_surgeon, hospital_name)
-            send_sms(recipients[0], sms_txt, sender_id=hospital_name)
-            res = 'Sent nudge sms'
-
-        case _:
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json'},
-                'body': f'Method not found: {nudge_method}',
-            }
+    match nudge_category:
+        case 'proactive-block-release':
+            send_proactive_block_release_notification(
+                nudge_method, hospital_name, recipients, nudge_content, doctor_name, link_for_surgeon
+            )
+        case 'flex_blocks':
+            pass
 
     print(f'Sent nudge to {recipients} with method: {nudge_method}')
 
+    block_status_name = nudge_category_to_dv_table_name[nudge_category]
     update_blocks_status(blocks, headers, block_status_name)
     print(f"Updated blocks statuses to pending: {[block["blockId"] for block in blocks]}")
 
