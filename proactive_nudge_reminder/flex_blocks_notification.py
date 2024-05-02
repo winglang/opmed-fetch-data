@@ -3,7 +3,7 @@ from utils.send_notification.send_email import send_email
 from utils.send_notification.send_sms import send_sms
 
 
-def send_flex_blocks_notification(nudge_method, notification_message: NotificationMessage):
+def send_flex_blocks_notification(nudge_method: str, notification_message: NotificationMessage):
     match nudge_method:
         case 'send-email':
             subject = 'Opportunity to increase block time'
