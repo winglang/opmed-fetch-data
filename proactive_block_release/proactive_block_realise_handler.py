@@ -62,7 +62,7 @@ def proactive_block_realise_handler(event, context):
             block |= blocks_status.get(block['id'], {'releaseStatus': 'new'})
         response_body = json.dumps(predicted_blocks, cls=GeneralEncoder)
     else:
-        response_body = blocks_predictions_res['error']
+        return blocks_predictions_res
     save_to_s3 = (event.get('queryStringParameters') or {}).get('save_to_s3', False)
     if save_to_s3:
         s3_key = os.path.join(tenant, json_file_name)
