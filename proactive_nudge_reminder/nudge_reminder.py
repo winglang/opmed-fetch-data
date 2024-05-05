@@ -5,13 +5,19 @@ from urllib.parse import urlencode
 
 import requests
 
+from proactive_nudge_reminder.flex_blocks_notification import send_flex_blocks_notification
+from proactive_nudge_reminder.notification_message_details import NotificationMessage
+from proactive_nudge_reminder.proactive_block_release_notification import send_proactive_block_release_notification
 from utils.jwt_utils import generate_jwt
-from utils.send_notification.send_email import send_email
-from utils.send_notification.send_sms import send_sms
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
 
-url = os.getenv('URL')
 url_surgeon_app = os.getenv('URL_SURGEON_APP')
+url = os.getenv('URL')
+
+nudge_category_to_dv_table_name = {
+    'proactive-block-release': 'proactive_blocks_status',
+    'flex_blocks': 'flex_blocks_status',
+}
 
 
 def send_reminder(event, context):
@@ -41,55 +47,44 @@ def send_reminder(event, context):
     link_for_surgeon = create_link(tenant, doctor_id)
     nudge_content = request_body.get('content', '')
 
-    method = event['path'].rsplit('/', 1)[-1]
-    print(f'Nudge method is: {method}')
-    match method:
-        case 'send-email':
-            subject = 'Request for unused block time release'
-            email = {'html': get_email_content(nudge_content, doctor_name, link_for_surgeon, hospital_name)}
-            send_email(subject=subject, body=email, recipients=recipients)
-            res = 'Sent nudge email'
-        case 'send-sms':
-            sms_txt = get_sms_content(doctor_name, link_for_surgeon, hospital_name)
-            send_sms(recipients[0], sms_txt, sender_id=hospital_name)
-            res = 'Sent nudge sms'
+    path = event['requestContext']['http']['path']
 
+    path_splits = path[1:].split('/')
+    nudge_method = path_splits[-1]
+    nudge_category = path_splits[-2] if path_splits[-2] != 'nudge-reminder' else 'proactive-block-release'
+
+    if nudge_category not in nudge_category_to_dv_table_name.keys():
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+            'body': f'Category not allowed: {nudge_category}',
+        }
+
+    print(f'Nudge method is: {nudge_method}')
+    print(f'Nudge category is: {nudge_category}')
+
+    notification_message_details = NotificationMessage(
+        hospital_name, recipients, nudge_content, doctor_name, link_for_surgeon
+    )
+    match nudge_category:
+        case 'proactive-block-release':
+            res = send_proactive_block_release_notification(nudge_method, notification_message_details)
+        case 'flex_blocks':
+            res = send_flex_blocks_notification(nudge_method, notification_message_details)
         case _:
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json'},
-                'body': f'Method not found: {method}',
-            }
+            res = None
 
-    print(f'Sent nudge to {recipients} with method: {method}')
+    if isinstance(res, dict):
+        return res
 
-    update_blocks_status(blocks, headers)
+    print(f'Sent nudge to {recipients} with method: {nudge_method}')
+
+    block_status_name = nudge_category_to_dv_table_name[nudge_category]
+
+    update_blocks_status(blocks, headers, block_status_name)
     print(f"Updated blocks statuses to pending: {[block["blockId"] for block in blocks]}")
 
     return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': res}
-
-
-def get_email_content(content: str, doctor_name: str, link: str, hospital_name: str) -> str:
-    return (
-        f"<img src='https://gmix-sync.s3.amazonaws.com/public-items/opmed-logo.png' alt='' />{content}"
-        f'<br/>Dear Dr.{doctor_name}<br/>We hope this message finds you well.<br/><br/>We kindly request your assistance in releasing your block time and providing your approval via the '
-        f'attached <a href={link}>link</a> on Opmed.ai <br/>'
-        f'This step is crucial for optimizing our scheduling and ensuring the best use of our resources.<br/>'
-        f'Thank you for your cooperation and understanding.<br/><br/>'
-        f'Best regards,<br/>'
-        f'{hospital_name} Perioperative Leadership Team'
-    )
-
-
-def get_sms_content(doctor_name: str, link: str, hospital_name: str) -> str:
-    return (
-        f'Dear Dr.{doctor_name}, We hope this message finds you well. We kindly request your assistance in releasing your block time and providing your approval via this link '
-        f'{link} on Opmed.ai\n'
-        f'This step is crucial for optimizing our scheduling and ensuring the best use of our resources\n'
-        f'Thank you for your cooperation and understanding.\n'
-        f'Best regards,\n'
-        f'{hospital_name} Perioperative Leadership Team.'
-    )
 
 
 def create_link(tenant: str, user_id: str) -> str:
@@ -98,11 +93,11 @@ def create_link(tenant: str, user_id: str) -> str:
     return url_surgeon_app + '?' + urlencode(params, doseq=True)
 
 
-def update_blocks_status(blocks: list, headers: dict) -> None:
+def update_blocks_status(blocks: list, headers: dict, block_status_name: str) -> None:
     for block in blocks:
         block['releaseStatus'] = 'pending'
         block['expired_at'] = int(datetime.fromisoformat(block['start']).timestamp())
 
     block_ids = [block['blockId'] for block in blocks]
-    update_url = f'{url}/api/v1/resources/proactive_blocks_status/bundle'
+    update_url = f'{url}/api/v1/resources/{block_status_name}/bundle'
     requests.put(update_url, json=blocks, params={'ids': block_ids}, headers=headers)
