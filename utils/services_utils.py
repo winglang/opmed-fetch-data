@@ -24,7 +24,8 @@ DOMAIN_TO_USER_GROUPS = {
     'nbi.opmed.ai': {'nbi-users'},
     'umh-dev.greatmix.ai': {'umh-users'},
     'umh.greatmix.ai': {'umh-users'},
-    'plan.opmed.ai': {'hmc-users'},
+    'plan.opmed.ai': {'hmc-users', 'mayo-users'},
+    'mayo-hrs.opmed.ai': {'mayo-users'},
 }
 
 AUTH_HEADERS = {'gmix_serviceid', 'referer', 'cookie'}
