@@ -75,8 +75,7 @@ def lambda_handler(event, context):
             resource_ids = [path_splits[5]]
 
         data_object = None
-        # https://github.com/winglang/wing/issues/6565
-        if event is not None and 'body' in event and event['body'] is not None and event['body'] != '':
+        if event is not None and 'body' in event and event['body'] is not None:
             data_object = json.loads(event['body'])
         if type(data_object) is dict:
             data_object = [data_object]

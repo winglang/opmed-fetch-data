@@ -341,12 +341,13 @@ class Aws:
       return req
     elif target == "sim":
       data = event["payload"]
+      body = data["body"]
       req = {
         'httpMethod': data["method"],
         'path': data["path"],
         'queryStringParameters': data["query"],
         'headers': data["headers"],
-        'body': data["body"],
+        'body': None if body == "" else body,
         'pathParameters': data["vars"],
         'requestContext': {
           'http': {
