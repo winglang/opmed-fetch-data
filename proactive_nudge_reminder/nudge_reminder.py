@@ -10,6 +10,7 @@ from proactive_nudge_reminder.notification_message_details import NotificationMe
 from proactive_nudge_reminder.proactive_block_release_notification import send_proactive_block_release_notification
 from utils.jwt_utils import generate_jwt
 from utils.services_utils import lowercase_headers, get_username, AUTH_HEADERS, get_service
+from wing import Aws
 
 url_surgeon_app = os.getenv('URL_SURGEON_APP')
 url = os.getenv('URL')
@@ -21,6 +22,8 @@ nudge_category_to_dv_table_name = {
 
 
 def send_reminder(event, context):
+    event = Aws.try_from_api_event(event)
+
     if lowercase_headers(event):
         return lowercase_headers(event)
 
@@ -41,7 +44,7 @@ def send_reminder(event, context):
         block['doctorName'] = doctor_name
         block['doctorId'] = doctor_id
 
-    headers = {key: val for key, val in event.get('headers', {}).items() if key.lower() in AUTH_HEADERS}
+    headers = {key: val for key, val in event.get('headers', {}).items() if key.lower() in AUTH_HEADERS.union({'tenant-id', 'user-id'})}
 
     recipients = sorted(request_body['recipients'])
     link_for_surgeon = create_link(tenant, doctor_id)

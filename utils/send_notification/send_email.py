@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 
 import boto3
 
+from wing import try_lifted
 
 def send_email(subject, body, attachments=None, recipients=None):
     attachments = attachments or []
@@ -13,7 +14,7 @@ def send_email(subject, body, attachments=None, recipients=None):
     sender = os.environ.get('sender') if 'sender' in os.environ else 'bot@opmed.ai'
 
     msg = create_multipart_message(sender, recipients, subject, body.get('text'), body.get('html'), attachments)
-    ses_client = boto3.client('ses')  # Use your settings here
+    ses_client = try_lifted('ses') or boto3.client('ses')
     return ses_client.send_raw_email(Source=sender, Destinations=recipients, RawMessage={'Data': msg.as_string()})
 
 

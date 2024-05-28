@@ -14,11 +14,13 @@ from utils.services_utils import (
     valid_service,
 )
 
+from wing import Aws
+
 SALT = os.getenv('HASH_ID_SALT')
 
 
 def lambda_handler(event, context):
-    print({'event': event})
+    event = Aws.try_from_api_event(event)
 
     if lowercase_headers(event):
         return lowercase_headers(event)
@@ -73,7 +75,8 @@ def lambda_handler(event, context):
             resource_ids = [path_splits[5]]
 
         data_object = None
-        if event is not None and 'body' in event and event['body'] is not None:
+        # https://github.com/winglang/wing/issues/6565
+        if event is not None and 'body' in event and event['body'] is not None and event['body'] != '':
             data_object = json.loads(event['body'])
         if type(data_object) is dict:
             data_object = [data_object]

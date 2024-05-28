@@ -3,7 +3,7 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Attr
 from boto3.dynamodb.conditions import Key
-
+from wing import try_lifted
 
 class DynamoDBAccessor:
     def __init__(self, table_name, aws_access_key_id=None, aws_secret_access_key=None):
@@ -12,10 +12,10 @@ class DynamoDBAccessor:
                 'dynamodb',
                 aws_access_key_id=aws_access_key_id,
                 aws_secret_access_key=aws_secret_access_key,
-                region_name=os.environ['REGION'],
             )
         else:
-            self.dynamodb = boto3.resource('dynamodb')
+            client = try_lifted(table_name)
+            self.dynamodb = client.resource if client else boto3.resource('dynamodb')
         self.table = self.dynamodb.Table(table_name)
 
     def get_item(self, tenant_id, data_id):
