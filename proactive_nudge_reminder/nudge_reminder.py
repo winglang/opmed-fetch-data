@@ -22,7 +22,7 @@ nudge_category_to_dv_table_name = {
 
 
 def send_reminder(event, context):
-    event = Aws.try_from_api_event(event)
+    event = Aws.to_aws_api_event(event) or event
 
     if lowercase_headers(event):
         return lowercase_headers(event)

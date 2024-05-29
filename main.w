@@ -2,12 +2,13 @@ bring http;
 bring expect;
 bring "./infra.w" as infra;
 
-let fetchData = new infra.FetchData() as "fetch-data";
+let proactive = new infra.Proactive() as "Proactive";
+let nudgeReminderClient = new infra.NudgeReminder(proactive.api) as "Nudge Reminder Client";
 
 new std.Test(inflight () => {
-  fetchData.nudgeReminder.invoke();
+  nudgeReminderClient.proactiveBlockSendEmail.invoke();
 
-  let res2 = http.get(fetchData.api.url + "/api/v1/resources/proactive_blocks_status/bundle?ids=blockId1", 
+  let res2 = http.get(proactive.api.url + "/api/v1/resources/proactive_blocks_status/bundle?ids=blockId1", 
     headers: {
       "gmix_serviceid": "gmix_serviceid1",
       "referer": "referer1",

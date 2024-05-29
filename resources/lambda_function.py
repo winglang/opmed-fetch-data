@@ -20,7 +20,8 @@ SALT = os.getenv('HASH_ID_SALT')
 
 
 def lambda_handler(event, context):
-    event = Aws.try_from_api_event(event)
+    event = Aws.to_aws_api_event(event) or event
+    print({'event': event})
 
     if lowercase_headers(event):
         return lowercase_headers(event)
