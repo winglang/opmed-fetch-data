@@ -7,11 +7,17 @@ bring ses;
 bring sns;
 bring "./node_modules/@winglibs/python" as python;
 
+pub struct ProactiveProps {
+  symmetricKey: str;
+  urlSurgeonApp: str;
+  sender: str;
+}
+
 /// Class to define all infrastructure resources for the proactive feature.
 pub class Proactive {
   pub api: cloud.Api;
 
-  new() {
+  new(props: ProactiveProps) {
     let sesClient = new ses.EmailService({});
     let snsClient = new sns.MobileNotifications();
     let table = new dynamodb.Table(
@@ -33,10 +39,10 @@ pub class Proactive {
     this.api = new cloud.Api();
     
     let nudgeEnv = {
-      SYMMETRIC_KEY: "symmetric_key1" ,
-      URL_SURGEON_APP: "url_surgeon_app1",
+      SYMMETRIC_KEY: props.symmetricKey,
+      URL_SURGEON_APP: props.urlSurgeonApp,
+      sender: props.sender,
       URL: this.api.url,
-      sender: "eladc@monada.co",
     };
 
     let resourceEnv = {
@@ -46,7 +52,7 @@ pub class Proactive {
     
     this.api.post("/api/v1/:nudge_category/:nudge_method", new python.InflightApiEndpointHandler(
       path: @dirname,
-      handler: "proactive_nudge_reminder/nudge_reminder.send_reminder",
+      handler: "proactive_nudge_reminder/nudge_reminder.wing_api_handler",
       lift: {
         ses_client: {
           obj: sesClient,
@@ -61,7 +67,7 @@ pub class Proactive {
     
     this.api.put("/api/v1/resources/:block_status_name/bundle", new python.InflightApiEndpointHandler(
       path: @dirname,
-      handler: "resources/lambda_function.lambda_handler",
+      handler: "resources/lambda_function.wing_api_handler",
       lift: {
         proactive_blocks_status: {
           obj: table,
@@ -72,7 +78,7 @@ pub class Proactive {
     
     this.api.get("/api/v1/resources/:block_status_name/bundle", new python.InflightApiEndpointHandler(
       path: @dirname,
-      handler: "resources/lambda_function.lambda_handler",
+      handler: "resources/lambda_function.wing_api_handler",
       lift: {
         proactive_blocks_status: {
           obj: table,
@@ -80,42 +86,5 @@ pub class Proactive {
         }
       }
     ) as "resources_get", env: resourceEnv);
-  }
-}
-
-pub class NudgeReminder {
-  pub proactiveBlockSendEmail: cloud.Function;
-  new(api: cloud.Api) {
-    this.proactiveBlockSendEmail = new cloud.Function(inflight () => {
-      let res = http.post(api.url + "/api/v1/proactive-block-release/send-email", 
-        headers: {
-          "gmix_serviceid": "gmix_serviceid1",
-          "referer": "referer1",
-          "cookie": "cookie1",
-          "tenant-id": "opmed-sandbox",
-          "user-id": "user-id1",
-        },
-        body: Json.stringify({
-          blocks: [{
-            blockId: "blockId1",
-            start: "2011-10-05T14:48:00.000Z",
-          }],
-          doctorName: "doctor_name1",
-          doctorId: "doctor_id1",
-          content: "content1",
-          recipients: ["eladc@monada.co"],
-        }),
-      );
-      log(res.body);
-    }) as "invoke nudge_reminder";
-  }
-}
-
-pub class App {
-  pub proactive: Proactive;
-  pub nudgeReminder: NudgeReminder;
-  new() {
-    this.proactive = new Proactive();
-    this.nudgeReminder = new NudgeReminder(this.proactive.api);
   }
 }

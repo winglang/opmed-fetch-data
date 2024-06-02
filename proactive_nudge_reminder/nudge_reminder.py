@@ -20,10 +20,11 @@ nudge_category_to_dv_table_name = {
     'flex_blocks': 'flex_blocks_status',
 }
 
+def wing_api_handler(event, context):
+  result = send_reminder(Aws.api_to_lambda(event), context)
+  return result
 
 def send_reminder(event, context):
-    event = Aws.to_aws_api_event(event) or event
-
     if lowercase_headers(event):
         return lowercase_headers(event)
 

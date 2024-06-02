@@ -18,9 +18,11 @@ from wing import Aws
 
 SALT = os.getenv('HASH_ID_SALT')
 
+def wing_api_handler(event, context):
+  result = lambda_handler(Aws.api_to_lambda(event), context)
+  return result
 
 def lambda_handler(event, context):
-    event = Aws.to_aws_api_event(event) or event
     print({'event': event})
 
     if lowercase_headers(event):

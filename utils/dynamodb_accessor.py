@@ -12,6 +12,7 @@ class DynamoDBAccessor:
                 'dynamodb',
                 aws_access_key_id=aws_access_key_id,
                 aws_secret_access_key=aws_secret_access_key,
+                region_name=os.environ['REGION'],
             )
         else:
             client = try_lifted(table_name)
