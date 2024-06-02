@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@winglibs/dynamodb": "^0.1.10",
-    "@winglibs/python": "^0.0.4",
-    "@winglibs/ses": "^0.0.1",
-    "@winglibs/sns": "^0.0.2"
+    "@winglibs/dynamodb": "^0.1.11",
+    "@winglibs/python": "^0.0.5",
+    "@winglibs/ses": "^0.0.2",
+    "@winglibs/sns": "^0.1.0"
   }
 }

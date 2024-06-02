@@ -13,7 +13,7 @@ pub class Proactive {
 
   new() {
     let sesClient = new ses.EmailService({});
-    let snsClient = new sns.MobileClient();
+    let snsClient = new sns.MobileNotifications();
     let table = new dynamodb.Table(
       name: "proactive_blocks_status",
       attributes: [
@@ -108,5 +108,14 @@ pub class NudgeReminder {
       );
       log(res.body);
     }) as "invoke nudge_reminder";
+  }
+}
+
+pub class App {
+  pub proactive: Proactive;
+  pub nudgeReminder: NudgeReminder;
+  new() {
+    this.proactive = new Proactive();
+    this.nudgeReminder = new NudgeReminder(this.proactive.api);
   }
 }
