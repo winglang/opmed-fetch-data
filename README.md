@@ -13,6 +13,6 @@ How to use wing:
 
   `npm install`
 
-- Start wing
+- Start wing for local development:
 
-  `wing it main.w`
+  `wing it proactive.test.w`
